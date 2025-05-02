@@ -1,0 +1,17 @@
+How to get backend up and running:
+
+Install Postgres (on macOS, I have homebrew so I installed postgresql and docker-compose and am running it that way)
+
+Install golang-migrate (with homebrew: it's just `brew install golang-migrate`)
+
+Run the SQL init script in the backend/ folder (ex below):
+gavin@gavins-mbp backend % migrate \                                                                                                    
+-path ./migrations/ \
+-database "$DATABASE_URL" \
+up
+
+where DATABASE_URL is your full database connection URL, starting with "postgres://" and specifying username, password, and database name
+** IT IS IMPORTANT THAT YOU SET THIS ENV VAR because the go code references it
+
+Use `go run main.go`!
+You can test the test gateway with `curl http://localhost:8080/test`
