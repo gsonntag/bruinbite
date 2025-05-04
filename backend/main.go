@@ -1,44 +1,67 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"log"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/jackc/pgx/v4/stdlib"
+
+	"github.com/gsonntag/bruinbite/db"
+	"github.com/gsonntag/bruinbite/handlers"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 const Port = 8080
 
-func main() {
+var DBManager *db.DBManager
+
+func InitializeDatabase() error {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		log.Fatal("DATABASE_URL envvar not set, exiting")
+		log.Fatal("DATABASE_URL env var not set, exiting")
 	}
-	db, err := sql.Open("pgx", dbURL)
+	database, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Failed to start db: %v", err)
+		return err
 	}
-	defer db.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := db.PingContext(ctx); err != nil {
-		log.Fatalf("Failed to connect to db: %v", err)
+	DBManager = db.NewDBManager(database)
+	err = DBManager.Migrate()
+	if err != nil {
+		return err
 	}
-	log.Println("Connected to the postgres db")
+	return nil
+}
 
-	router := gin.Default()
-	router.GET("/test", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "test gateway working"})
+func RegisterRoutes(router *gin.Engine) {
+	router.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "Pong"})
 	})
 
+	router.POST("/signup", handlers.SignupHandler(DBManager))
+}
+
+func InitializeRouter() error {
+	router := gin.Default()
+	RegisterRoutes(router)
 	log.Printf("Listening on port %d", Port)
 	if err := router.Run(":" + strconv.Itoa(Port)); err != nil {
 		log.Fatalf("server error: %v", err)
+		return err
+	}
+	return nil
+}
+
+func main() {
+	err := InitializeDatabase()
+	if err != nil {
+		log.Fatalln("Failed to connect to database")
+		return
+	}
+	err = InitializeRouter()
+	if err != nil {
+		log.Fatalln("Failed to initialize Gin router")
+		return
 	}
 }
