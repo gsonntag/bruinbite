@@ -40,6 +40,7 @@ func RegisterRoutes(router *gin.Engine) {
 	})
 
 	router.POST("/signup", handlers.SignupHandler(DBManager))
+	router.POST("/login", handlers.LoginHandler(DBManager))
 }
 
 func InitializeRouter() error {
