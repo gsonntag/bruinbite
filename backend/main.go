@@ -65,6 +65,12 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/protected", 
 		handlers.AuthMiddleware(),
 		handlers.ProtectedHandler(DBManager))
+
+	// Register user info route
+	router.GET("/userinfo",
+		handlers.AuthMiddleware(),
+		handlers.GetCurUserInfoHandler(DBManager))
+	
 }
 
 func InitializeRouter() error {

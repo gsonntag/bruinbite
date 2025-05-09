@@ -36,3 +36,12 @@ func (m *DBManager) GetUserByNameOrEmail(username string) (*models.User, error) 
 	}
 	return &user, nil
 }
+
+func (m *DBManager) GetUserByID(id uint) (*models.User, error) {
+	var user models.User
+	err := m.DB.First(&user, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
