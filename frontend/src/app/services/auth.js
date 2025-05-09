@@ -32,3 +32,7 @@ export async function login(username, password) {
     localStorage.setItem("jwt", token);
     return user;
 }
+
+export async function logout() {
+  localStorage.removeItem("jwt") // stateless JWT, remove token on client's end
+}

@@ -48,7 +48,7 @@ func LoginHandler(mgr *db.DBManager) gin.HandlerFunc {
 		jwtSecret := os.Getenv("JWT_SECRET")
 		if jwtSecret == "" {
 			// secret not set
-			jwtSecret = "fallback" // just for dev
+			jwtSecret = "F4LLB4CK" // just for dev
 		}
 
 		claims := jwt.MapClaims{
