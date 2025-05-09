@@ -17,10 +17,20 @@ export default function LoginForm({ onClose }) {
     return emailRegex.test(email);
   };
 
+  const isValidName = (name) => {
+    const nameRegex = /^[a-zA-Z0-9._-]+$/;
+    return nameRegex.test(name);
+  };
+
   const handleSubmit = async (e) => {
     console.log('Handle submit')
     e.preventDefault();
     setError(''); // Clear any previous errors
+
+    if (!isValidName(formData.username) && !isValidEmail(formData.username)) {
+      setError('Special characters are not allowed!');
+      return;
+    }
 
     if (!isValidEmail(formData.username) &&
       (formData.username.length < 3 || formData.username.length > 16)) {
