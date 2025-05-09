@@ -67,16 +67,31 @@ export default function LoginForm({ onClose }) {
         <form>
           <div>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="username"
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
-              placeholder="Email address"
+              placeholder={isLogin ? "Username or email" : "Username"}
               className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
               required
             />
           </div>
+
+          {!isLogin && (
+            <div>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email address"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                required
+              />
+            </div>
+          )}
 
           <div>
             <input
@@ -109,6 +124,7 @@ export default function LoginForm({ onClose }) {
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+            onClick={handleSubmit}
           >
             {isLogin ? 'Sign in' : 'Create account'}
           </button>
