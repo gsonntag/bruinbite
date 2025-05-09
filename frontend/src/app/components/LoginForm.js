@@ -64,7 +64,7 @@ export default function LoginForm({ onClose }) {
             </svg>
           </button>
         </div>
-        <form>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <input
               type="username"
@@ -124,12 +124,11 @@ export default function LoginForm({ onClose }) {
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-            onClick={handleSubmit}
           >
             {isLogin ? 'Sign in' : 'Create account'}
           </button>
         </form>
-
+        
         <div className="mt-6 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}

@@ -19,6 +19,7 @@
 
 # production
 /build
+/backend/db.env
 
 # misc
 .DS_Store
