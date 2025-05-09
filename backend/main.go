@@ -4,12 +4,14 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/gsonntag/bruinbite/db"
 	"github.com/gsonntag/bruinbite/handlers"
 	"gorm.io/driver/postgres"
+	"github.com/gin-contrib/cors"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +24,8 @@ func InitializeDatabase() error {
 	if dbURL == "" {
 		log.Fatal("DATABASE_URL env var not set, exiting")
 	}
+
+	// Try to cnnect to database
 	database, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
 		return err
@@ -35,10 +39,24 @@ func InitializeDatabase() error {
 }
 
 func RegisterRoutes(router *gin.Engine) {
+
+	// CORS is necessary so that frontend can communicate with backend.
+	// Otherwise, it will be viewed as a cross-origin request and will be blocked.
+	router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:3000"}, // frontend URL
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge:           12 * time.Hour,
+    }))
+
+	// Register test route (renamed to ping)
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "Pong"})
 	})
 
+	// Register auth routes
 	router.POST("/signup", handlers.SignupHandler(DBManager))
 	router.POST("/login", handlers.LoginHandler(DBManager))
 }
@@ -47,6 +65,8 @@ func InitializeRouter() error {
 	router := gin.Default()
 	RegisterRoutes(router)
 	log.Printf("Listening on port %d", Port)
+
+	// Try to run router, if it fails, log error
 	if err := router.Run(":" + strconv.Itoa(Port)); err != nil {
 		log.Fatalf("server error: %v", err)
 		return err

@@ -1,17 +1,41 @@
 'use client';
 import { useState } from 'react';
+import { login, signup } from "../services/auth";
 
 export default function LoginForm({ onClose }) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+    console.log('Handle submit')
     e.preventDefault();
-    // placeholder
+
+    if (formData.username.length < 3 || formData.username.length > 16) {
+      // invalid length
+      return
+    }
+
+    // TODO: use regex matching to check validity ()
+
+    // we only care if the user is signing up, otherwise `confirmPassword` will be blank
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      // TODO: put a visually appealing error 
+      return
+    }
+
+    if (isLogin) {
+      // pre-existing login, use `username` to represent either username or email (whatever the user enters)
+      await login(formData.username, formData.password)
+    } else {
+      // submitting register form
+      const res = await signup(formData.username, formData.email, formData.password)
+      console.log(`response=${res}`)
+    }
     console.log('Form submitted:', formData);
   };
 
@@ -40,8 +64,7 @@ export default function LoginForm({ onClose }) {
             </svg>
           </button>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form>
           <div>
             <input
               type="email"
@@ -102,4 +125,4 @@ export default function LoginForm({ onClose }) {
       </div>
     </div>
   );
-} 
+}

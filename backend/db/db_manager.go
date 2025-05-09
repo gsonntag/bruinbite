@@ -13,6 +13,7 @@ func NewDBManager(db *gorm.DB) *DBManager {
 	return &DBManager{DB: db}
 }
 
+// Use GORM to automatically migrate our models if there are any changes to them
 func (m *DBManager) Migrate() error {
 	return m.DB.AutoMigrate(
 		&models.User{},
