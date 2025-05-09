@@ -75,7 +75,7 @@ export default function LoginForm({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-10 rounded-2xl w-full max-w-sm mx-4">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-light text-gray-900 ">
