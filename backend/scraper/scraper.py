@@ -35,6 +35,7 @@ options.add_experimental_option("detach", True)
 
 driver = webdriver.Chrome(options=options)
 
+# TEMPORARY -- For now, only scrape bruin plate for testing purposes. Other pages appear buggy
 dining_halls = [
     "bruin-plate",
 ]
@@ -48,7 +49,6 @@ for name in dining_halls:
         "lunchmenu": "LUNCH",
         "dinnermenu": "DINNER"
     }
-    # KNOWN BUG: 
 
     for anchor_id, period_name_friendly in meal_anchor_info.items():
         try:
