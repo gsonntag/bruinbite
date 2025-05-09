@@ -61,6 +61,10 @@ func RegisterRoutes(router *gin.Engine) {
 	// Register auth routes
 	router.POST("/signup", handlers.SignupHandler(DBManager))
 	router.POST("/login", handlers.LoginHandler(DBManager))
+
+	router.GET("/protected", 
+		handlers.AuthMiddleware(),
+		handlers.ProtectedHandler(DBManager))
 }
 
 func InitializeRouter() error {
