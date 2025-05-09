@@ -4,6 +4,7 @@ import { login, signup } from "../services/auth";
 
 export default function LoginForm({ onClose }) {
   const [isLogin, setIsLogin] = useState(true);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -11,30 +12,45 @@ export default function LoginForm({ onClose }) {
     confirmPassword: ''
   });
 
+  const isValidEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e) => {
     console.log('Handle submit')
     e.preventDefault();
+    setError(''); // Clear any previous errors
 
-    if (formData.username.length < 3 || formData.username.length > 16) {
-      // invalid length
-      return
+    if (!isValidEmail(formData.username) &&
+      (formData.username.length < 3 || formData.username.length > 16)) {
+        setError('Username must be a valid email or 3–16 characters long');
+        return;
     }
-
-    // TODO: use regex matching to check validity ()
 
     // we only care if the user is signing up, otherwise `confirmPassword` will be blank
     if (!isLogin && formData.password !== formData.confirmPassword) {
-      // TODO: put a visually appealing error 
+      setError('Passwords do not match!')
       return
     }
 
-    if (isLogin) {
-      // pre-existing login, use `username` to represent either username or email (whatever the user enters)
-      await login(formData.username, formData.password)
-    } else {
-      // submitting register form
-      const res = await signup(formData.username, formData.email, formData.password)
-      console.log(`response=${res}`)
+    try {
+      if (isLogin) {
+        // pre-existing login, use `username` to represent either username or email (whatever the user enters)
+        await login(formData.username, formData.password)
+      } else {
+        // submitting register form
+        await signup(formData.username, formData.email, formData.password)
+      }
+      onClose(); // Close the form on successful login/signup
+    } catch (error) {
+      if (error.message.includes('already exists')) {
+        setError('An account with this email already exists');
+      } else if (error.message.includes('Login failed')) {
+        setError('Invalid email or password');
+      } else {
+        setError(error.message || 'An error occurred. Please try again.');
+      }
     }
     console.log('Form submitted:', formData);
   };
@@ -65,6 +81,11 @@ export default function LoginForm({ onClose }) {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
           <div>
             <input
               type="username"
