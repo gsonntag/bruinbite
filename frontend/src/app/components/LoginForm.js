@@ -13,13 +13,34 @@ export default function LoginForm({ onClose }) {
   });
 
   const isValidEmail = (email) => {
-    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    const emailRegex = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
     return emailRegex.test(email);
   };
 
   const isValidName = (name) => {
     const nameRegex = /^[a-zA-Z0-9._-]+$/;
     return nameRegex.test(name);
+  };
+
+  const handleModeSwitch = () => {
+    const currentUsername = formData.username;
+    if (isLogin && currentUsername) {
+      // if we're switching from login to signup mode and there's content in username
+      if (isValidEmail(currentUsername)) {
+        setFormData({
+          ...formData,
+          email: currentUsername,
+          username: ''
+        });
+      } else {
+        setFormData({
+          ...formData,
+          username: currentUsername,
+          email: ''
+        });
+      }
+    }
+    setIsLogin(!isLogin);
   };
 
   const handleSubmit = async (e) => {
@@ -162,7 +183,7 @@ export default function LoginForm({ onClose }) {
         
         <div className="mt-6 text-center">
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={handleModeSwitch}
             className="text-gray-500 hover:text-gray-700   transition-colors"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
