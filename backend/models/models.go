@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +31,7 @@ type Dish struct {
 	Name          string     `gorm:"type:text;not null" json:"name"`
 	Description   *string    `gorm:"type:text" json:"description,omitempty"`
 	AverageRating float64    `gorm:"type:numeric(7,5);not null;default:0.00000" json:"average_rating"`
-	Tags          []string   `gorm:"type:text[];not null;default:'{}'" json:"tags"`
+	Tags          pq.StringArray   `gorm:"type:text[];not null;default:'{}'" json:"tags"`
 	Ratings       []Rating   `gorm:"foreignKey:DishID" json:"ratings,omitempty"`
 }
 
