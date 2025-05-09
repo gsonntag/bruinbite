@@ -17,7 +17,7 @@ type SignupRequest struct {
 	Password string `json:"password"`
 }
 
-var usernameRegexp = regexp.MustCompile(`^[A-Za-z0-9]{3,16}$`)                            // 3-16 characters, letters and digits only
+var usernameRegexp = regexp.MustCompile(`^[A-Za-z0-9._-]{3,16}$`)                            // 3-16 characters, letters and digits only
 var emailRegex = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`) // standard email regex
 var passwordRegex = regexp.MustCompile(`^.{8,}$`)                                         // 8+ chars
 
