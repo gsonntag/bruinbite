@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { login, signup } from "../services/auth";
 
-export default function LoginForm({ onClose }) {
+export default function LoginForm({ onClose, onLoginSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -72,7 +72,10 @@ export default function LoginForm({ onClose }) {
       } else {
         // submitting register form
         await signup(formData.username, formData.email, formData.password)
+        // After successful signup, automatically log in
+        await login(formData.username, formData.password)
       }
+      onLoginSuccess?.();
       onClose(); // Close the form on successful login/signup
     } catch (error) {
       if (error.message.includes('already exists')) {
