@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/gsonntag/bruinbite/models"
 	"gorm.io/gorm"
 )
@@ -15,6 +17,13 @@ func NewDBManager(db *gorm.DB) *DBManager {
 
 // Use GORM to automatically migrate our models if there are any changes to them
 func (m *DBManager) Migrate() error {
+	loc := "De Neve Commons"
+	deNeve := models.DiningHall{ID: 1, Name: "De Neve", Location: &loc, Dishes: []models.Dish{}, Menus: []models.Menu{}}
+	dish1 := models.Dish{ID: 1, HallID: deNeve.ID, Hall: deNeve, Name: "Lobster Mac", Description: nil, AverageRating: 0.0, Tags: []string{}, Ratings: []models.Rating{}}
+	deNeve.Dishes = append(deNeve.Dishes, dish1)
+	m.DB.Create(&deNeve)
+	m.DB.Create(&dish1)
+
 	return m.DB.AutoMigrate(
 		&models.User{},
 		&models.DiningHall{},
@@ -77,6 +86,17 @@ func (m *DBManager) GetAllDishes() ([]models.Dish, error) {
 	var dishes []models.Dish
 	err := m.DB.Find(&dishes).Error
 	if err != nil {
+		return nil, err
+	}
+	return dishes, nil
+}
+
+func (m *DBManager) GetDishesByName(name string, limit int) ([]models.Dish, error) {
+	fmt.Println("function called")
+	var dishes []models.Dish
+	err := m.DB.Where("name ILIKE ?", name+"%").Limit(limit).Find(&dishes).Error
+	if err != nil {
+		fmt.Print(err)
 		return nil, err
 	}
 	return dishes, nil

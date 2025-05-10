@@ -62,7 +62,7 @@ func RegisterRoutes(router *gin.Engine) {
 	router.POST("/signup", handlers.SignupHandler(DBManager))
 	router.POST("/login", handlers.LoginHandler(DBManager))
 
-	router.GET("/protected", 
+	router.GET("/protected",
 		handlers.AuthMiddleware(),
 		handlers.ProtectedHandler(DBManager))
 
@@ -70,11 +70,15 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/userinfo",
 		handlers.AuthMiddleware(),
 		handlers.GetCurUserInfoHandler(DBManager))
-	
+
 	// Register hall dishes route
 	router.GET("/allhalldishes",
 		handlers.AuthMiddleware(),
 		handlers.GetAllHallDishesHandler(DBManager))
+
+	// Search route
+	router.GET("/search",
+		handlers.DishesSearchHandler(DBManager))
 
 }
 
