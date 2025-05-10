@@ -25,3 +25,23 @@ func GetCurUserInfoHandler(mgr *db.DBManager) gin.HandlerFunc {
 		})
 	}
 }
+
+func GetAllHallDishesHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		hallName := c.Query("hall_name")
+		if hallName == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "hall_name is required"})
+			return
+		}
+
+		dishes, err := mgr.GetAllDishesByHallName(hallName)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"dishes": dishes,
+		})
+	}
+}

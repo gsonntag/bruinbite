@@ -71,6 +71,11 @@ func RegisterRoutes(router *gin.Engine) {
 		handlers.AuthMiddleware(),
 		handlers.GetCurUserInfoHandler(DBManager))
 	
+	// Register hall dishes route
+	router.GET("/allhalldishes",
+		handlers.AuthMiddleware(),
+		handlers.GetAllHallDishesHandler(DBManager))
+
 }
 
 func InitializeRouter() error {
