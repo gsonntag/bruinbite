@@ -94,7 +94,7 @@ func (m *DBManager) GetAllDishes() ([]models.Dish, error) {
 func (m *DBManager) GetDishesByName(name string, limit int) ([]models.Dish, error) {
 	fmt.Println("function called")
 	var dishes []models.Dish
-	err := m.DB.Where("name ILIKE ?", name+"%").Limit(limit).Find(&dishes).Error
+	err := m.DB.Where("name ILIKE ?", "%"+name+"%").Limit(limit).Find(&dishes).Error
 	if err != nil {
 		fmt.Print(err)
 		return nil, err
