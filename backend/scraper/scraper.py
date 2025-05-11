@@ -1,8 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-import time
 import json
+import sys
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
@@ -49,7 +49,7 @@ def fetch_dining_data():
 
         for anchor_id, period_name_friendly in meal_anchor_info.items():
             try:
-                print(f"\nProcessing meal period: {period_name_friendly} for {name} -- (anchor ID: {anchor_id})")
+                print(f"\nProcessing meal period: {period_name_friendly} for {name} -- (anchor ID: {anchor_id})", file=sys.stderr)
                 
                 # Locate the anchor div by its ID
                 wait = WebDriverWait(driver, 0.2) # forcefully wait
@@ -73,11 +73,11 @@ def fetch_dining_data():
                     
                     # Fallback if the ID naming convention isn't strictly "mealname-category"
                     if not sub_category_sections:
-                        print(f"  No sub-categories found with '{period_name_friendly.lower()}' prefix in ID. Trying generic 'force-left-full-width'.")
+                        print(f"  No sub-categories found with '{period_name_friendly.lower()}' prefix in ID. Trying generic 'force-left-full-width'.", file=sys.stderr)
                         sub_category_sections = soup.find_all('div', class_='force-left-full-width', id=True)
 
                     if not sub_category_sections:
-                        print(f"  No sub-category sections (div.force-left-full-width with an id) found within the content for {period_name_friendly}.")
+                        print(f"  No sub-category sections (div.force-left-full-width with an id) found within the content for {period_name_friendly}.", file=sys.stderr)
                         continue
 
                     for section_div in sub_category_sections:
@@ -101,7 +101,7 @@ def fetch_dining_data():
                         # Find all recipe cards in this sub-category
                         recipe_cards = section_div.find_all('section', class_='recipe-card')
                         if not recipe_cards:
-                            print(f"No recipe cards found in '{sub_category_name}'.")
+                            print(f"No recipe cards found in '{sub_category_name}'.", file=sys.stderr)
 
                         for card in recipe_cards:
                             item_name_tag = card.select_one('.menu-item-title .ucla-prose h3')
@@ -110,23 +110,30 @@ def fetch_dining_data():
                                 menu_data[period_name_friendly][sub_category_name].append(item_name)
                                 # print(f"        Added item: {item_name}")
                             else:
-                                print(f"Could not find item name (h3) in a recipe card within '{sub_category_name}'.")
+                                print(f"Could not find item name (h3) in a recipe card within '{sub_category_name}'.", file=sys.stderr)
                 else:
-                    print(f"  Could not find content container immediately following anchor: {anchor_id}")
+                    print(f"  Could not find content container immediately following anchor: {anchor_id}", file=sys.stderr)
 
             except TimeoutException:
-                print(f"  Could not find meals for section: {anchor_id}")
+                print(f"  Could not find meals for section: {anchor_id}", file=sys.stderr)
             except Exception as e:
-                print(f"  An unexpected error occurred while processing {period_name_friendly} (anchor ID: {anchor_id}): {e}")
+                print(f"  An unexpected error occurred while processing {period_name_friendly} (anchor ID: {anchor_id}): {e}", file=sys.stderr)
                 import traceback
                 traceback.print_exc()
                 
         full_data[name] = menu_data
         if menu_data == {}:
-            print(f'{name} IS EITHER CLOSED OR ERROR FOUND')
+            print(f'{name} IS EITHER CLOSED OR ERROR FOUND', file=sys.stderr)
             
 
     # manually add study at hedrick options
     full_data['the-study-at-hedrick'] = {}
     
     return full_data
+
+def main():
+    data = fetch_dining_data()
+    print(json.dumps(data, separators=(',',':')))
+
+if __name__ == '__main__':
+    main()

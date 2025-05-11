@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -8,10 +9,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gsonntag/bruinbite/db"
 	"github.com/gsonntag/bruinbite/handlers"
+	"github.com/gsonntag/bruinbite/ingest"
 	"gorm.io/driver/postgres"
-	"github.com/gin-contrib/cors"
 	"gorm.io/gorm"
 )
 
@@ -43,13 +45,13 @@ func RegisterRoutes(router *gin.Engine) {
 	// CORS is necessary so that frontend can communicate with backend.
 	// Otherwise, it will be viewed as a cross-origin request and will be blocked.
 	router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"http://localhost:3000"}, // frontend URL
-        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-        ExposeHeaders:    []string{"Content-Length"},
-        AllowCredentials: true,
-        MaxAge:           12 * time.Hour,
-    }))
+		AllowOrigins:     []string{"http://localhost:3000"}, // frontend URL
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Register test route (renamed to ping)
 	router.GET("/ping", func(c *gin.Context) {
@@ -74,15 +76,24 @@ func InitializeRouter() error {
 	return nil
 }
 
+// func main() {
+// 	err := InitializeDatabase()
+// 	if err != nil {
+// 		log.Fatalln("Failed to connect to database")
+// 		return
+// 	}
+// 	err = InitializeRouter()
+// 	if err != nil {
+// 		log.Fatalln("Failed to initialize Gin router")
+// 		return
+// 	}
+// }
+
 func main() {
-	err := InitializeDatabase()
+
+	err := ingest.FetchAndIngest()
 	if err != nil {
-		log.Fatalln("Failed to connect to database")
-		return
+		fmt.Printf("%w\n", err)
 	}
-	err = InitializeRouter()
-	if err != nil {
-		log.Fatalln("Failed to initialize Gin router")
-		return
-	}
+
 }
