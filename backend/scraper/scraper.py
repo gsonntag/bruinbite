@@ -32,13 +32,14 @@ full_data = {}
 # create the driver along with options (to run window scraper silently)
 options = Options()
 options.add_experimental_option("detach", True)
+options.add_argument("--headless")
 
 driver = webdriver.Chrome(options=options)
 
 # TEMPORARY -- For now, only scrape bruin plate for testing purposes. Other pages appear buggy
-dining_halls = [
-    "bruin-plate",
-]
+# dining_halls = [
+#     "cafe-1919",
+# ]
 
 for name in dining_halls:
     driver.get(f'https://dining.ucla.edu/{name}/')
@@ -52,10 +53,10 @@ for name in dining_halls:
 
     for anchor_id, period_name_friendly in meal_anchor_info.items():
         try:
-            print(f"\nProcessing meal period: {period_name_friendly} (anchor ID: {anchor_id})")
+            print(f"\nProcessing meal period: {period_name_friendly} for {name} -- (anchor ID: {anchor_id})")
             
             # Locate the anchor div by its ID
-            wait = WebDriverWait(driver, 10) # Wait up to 10 seconds
+            wait = WebDriverWait(driver, 0.2) # forcefully wait
             anchor_element = wait.until(EC.presence_of_element_located((By.ID, anchor_id)))
             print(f"  Found anchor element: {anchor_id}")
 
@@ -99,7 +100,7 @@ for name in dining_halls:
 
 
                     menu_data[period_name_friendly][sub_category_name] = []
-                    print(f"Parsing sub-category: {sub_category_name}")
+                    # print(f"Parsing sub-category: {sub_category_name}")
 
                     # Find all recipe cards in this sub-category
                     recipe_cards = section_div.find_all('section', class_='recipe-card')
@@ -118,7 +119,7 @@ for name in dining_halls:
                 print(f"  Could not find content container immediately following anchor: {anchor_id}")
 
         except TimeoutException:
-            print(f"  Timed out waiting for anchor element with ID: {anchor_id}. This meal period might not be on the page or loaded.")
+            print(f"  Could not find meals for section: {anchor_id}")
         except Exception as e:
             print(f"  An unexpected error occurred while processing {period_name_friendly} (anchor ID: {anchor_id}): {e}")
             import traceback
