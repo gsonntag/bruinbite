@@ -32,12 +32,10 @@ func InitializeDatabase() error {
 	if err != nil {
 		return err
 	}
-	DBManager = db.NewDBManager(database)
-	err = DBManager.Migrate()
-	if err != nil {
+	if DBManager, err = db.NewDBManager(database); err != nil {
 		return err
 	}
-	return nil
+	return DBManager.Migrate()
 }
 
 func RegisterRoutes(router *gin.Engine) {
@@ -66,7 +64,6 @@ func RegisterRoutes(router *gin.Engine) {
 func InitializeRouter() error {
 	router := gin.Default()
 	RegisterRoutes(router)
-	log.Printf("Listening on port %d", Port)
 
 	// Try to run router, if it fails, log error
 	if err := router.Run(":" + strconv.Itoa(Port)); err != nil {
@@ -76,24 +73,21 @@ func InitializeRouter() error {
 	return nil
 }
 
-// func main() {
-// 	err := InitializeDatabase()
-// 	if err != nil {
-// 		log.Fatalln("Failed to connect to database")
-// 		return
-// 	}
-// 	err = InitializeRouter()
-// 	if err != nil {
-// 		log.Fatalln("Failed to initialize Gin router")
-// 		return
-// 	}
-// }
-
 func main() {
+	err := InitializeDatabase()
+	if err != nil {
+		log.Fatalln("Failed to connect to database", err)
+		return
+	}
 
-	err := ingest.FetchAndIngest()
+	err = ingest.FetchAndIngest(DBManager)
 	if err != nil {
 		fmt.Printf("%w\n", err)
 	}
 
+	err = InitializeRouter()
+	if err != nil {
+		log.Fatalln("Failed to initialize Gin router")
+		return
+	}
 }
