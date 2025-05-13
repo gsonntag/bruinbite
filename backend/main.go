@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gsonntag/bruinbite/db"
 	"github.com/gsonntag/bruinbite/handlers"
+	"github.com/gsonntag/bruinbite/ingest"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,12 +34,10 @@ func InitializeDatabase() error {
 	if err != nil {
 		return err
 	}
-	DBManager = db.NewDBManager(database)
-	err = DBManager.Migrate()
-	if err != nil {
+	if DBManager, err = db.NewDBManager(database); err != nil {
 		return err
 	}
-	return nil
+	return DBManager.Migrate()
 }
 
 func RegisterRoutes(router *gin.Engine) {
@@ -85,7 +85,6 @@ func RegisterRoutes(router *gin.Engine) {
 func InitializeRouter() error {
 	router := gin.Default()
 	RegisterRoutes(router)
-	log.Printf("Listening on port %d", Port)
 
 	// Try to run router, if it fails, log error
 	if err := router.Run(":" + strconv.Itoa(Port)); err != nil {
@@ -104,9 +103,15 @@ func main() {
 
 	err := InitializeDatabase()
 	if err != nil {
-		log.Fatalln("Failed to connect to database")
+		log.Fatalln("Failed to connect to database", err)
 		return
 	}
+
+	err = ingest.FetchAndIngest(DBManager)
+	if err != nil {
+		fmt.Printf("%w\n", err)
+	}
+
 	err = InitializeRouter()
 	if err != nil {
 		log.Fatalln("Failed to initialize Gin router")
