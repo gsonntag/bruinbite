@@ -44,23 +44,21 @@ export default function LoginForm({ onClose, onLoginSuccess }) {
   };
 
   const handleSubmit = async (e) => {
-    console.log('Handle submit')
     e.preventDefault();
-    setError(''); // Clear any previous errors
 
     if (!isValidName(formData.username) && !isValidEmail(formData.username)) {
       setError('Special characters are not allowed!');
       return;
     }
 
-    if (!isValidEmail(formData.username) &&
+    else if (!isValidEmail(formData.username) &&
       (formData.username.length < 3 || formData.username.length > 16)) {
         setError('Username must be a valid email or 3–16 characters long');
         return;
     }
 
     // we only care if the user is signing up, otherwise `confirmPassword` will be blank
-    if (!isLogin && formData.password !== formData.confirmPassword) {
+    else if (!isLogin && formData.password !== formData.confirmPassword) {
       setError('Passwords do not match!')
       return
     }
@@ -75,15 +73,16 @@ export default function LoginForm({ onClose, onLoginSuccess }) {
         // After successful signup, automatically log in
         await login(formData.username, formData.password)
       }
+      setError('')
       onLoginSuccess?.();
       onClose(); // Close the form on successful login/signup
     } catch (error) {
       if (error.message.includes('already exists')) {
-        setError('An account with this email already exists');
-      } else if (error.message.includes('Login failed')) {
-        setError('Invalid email or password');
+        setError('An account with this email already exists.');
+      } else if (error.message.includes('invalid username/password')) {
+        setError('Invalid email or password.');
       } else {
-        setError(error.message || 'An error occurred. Please try again.');
+        setError(error.message || 'An error occurred. Please try again later.');
       }
     }
     console.log('Form submitted:', formData);

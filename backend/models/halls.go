@@ -18,9 +18,9 @@ const (
 
 var HallNameMap = map[HallSlug]string{
 	DeNeveDining:  "De Neve",
-	BruinCafe:     "Bruin Cafe",
+	BruinCafe:     "Bruin Café",
 	BruinPlate:    "Bruin Plate",
-	Cafe1919:      "Cafe 1919",
+	Cafe1919:      "Café 1919",
 	EpicuriaCovel: "Epicuria",
 	EpicuriaAck:   "Epic at Ackerman",
 	Rendezvous:    "Rendezvous",

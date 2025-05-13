@@ -21,7 +21,7 @@ func DishesSearchHandler(mgr *db.DBManager) gin.HandlerFunc {
 			return
 		}
 
-		dishes, err := mgr.GetDishesByName(request.Keyword, 50)
+		dishes, err := mgr.GetDishesByName(request.Keyword, 10)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
