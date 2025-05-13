@@ -3,8 +3,12 @@ package handlers
 import (
 	"net/http"
 	"regexp"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gsonntag/bruinbite/db"
 	"github.com/gsonntag/bruinbite/models"
 	"github.com/lib/pq"
@@ -17,7 +21,7 @@ type SignupRequest struct {
 	Password string `json:"password"`
 }
 
-var usernameRegexp = regexp.MustCompile(`^[A-Za-z0-9]{3,16}$`)                            // 3-16 characters, letters and digits only
+var usernameRegexp = regexp.MustCompile(`^[A-Za-z0-9._-]{3,16}$`)                            // 3-16 characters, letters and digits only
 var emailRegex = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`) // standard email regex
 var passwordRegex = regexp.MustCompile(`^.{8,}$`)                                         // 8+ chars
 
@@ -66,7 +70,27 @@ func SignupHandler(mgr *db.DBManager) gin.HandlerFunc {
 			return
 		}
 
-		user.HashedPassword = "" // hide from user
-		ctx.JSON(http.StatusCreated, user)
+		jwtSecret := os.Getenv("JWT_SECRET")
+		if jwtSecret == "" {
+			// secret not set
+			jwtSecret = "F4LLB4CK" // just for dev
+		}
+
+		claims := jwt.MapClaims{
+			"sub":      strconv.Itoa(int(user.ID)),
+			"username": user.Username,
+			"exp":      time.Now().Add(24 * time.Hour).Unix(),
+			"iat":      time.Now().Unix(),
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString([]byte(jwtSecret))
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+			return
+		}
+
+		user.HashedPassword = ""
+		ctx.JSON(http.StatusOK, gin.H{"token": tokenString, "user": user})
 	}
 }
