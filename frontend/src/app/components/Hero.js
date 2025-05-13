@@ -21,7 +21,7 @@ export default function Hero() {
                     throw new Error("search failed");
                 }
                 const data = await response.json();
-                // console.log(data);                
+                console.log(data);                
                 setDishes(data.dishes);
             } catch (error) {
                 console.error("error: ", error);
@@ -51,7 +51,7 @@ export default function Hero() {
                             BruinBite
                         </h1>
                         <p className="text-2xl text-gray-500">
-                            Rate and Review dishes across UCLA dining halls
+                            Discover & Rate Your Favorite UCLA Dining Hall Dishes
                         </p>
                     </div>
                     <div className="w-full max-w-md space-y-2">
