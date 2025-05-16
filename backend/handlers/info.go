@@ -37,7 +37,7 @@ func GetAllHallDishesHandler(mgr *db.DBManager) gin.HandlerFunc {
 		dishes, err := mgr.GetAllDishesByHallName(hallName)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{

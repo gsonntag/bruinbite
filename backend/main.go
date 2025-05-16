@@ -85,6 +85,10 @@ func RegisterRoutes(router *gin.Engine) {
 		handlers.AuthMiddleware(),
 		handlers.SubmitRatingHandler(DBManager))
 
+	// Regiter menu route
+	router.GET("/menu",
+		handlers.AuthMiddleware(),
+		handlers.GetMenuHandler(DBManager))
 }
 
 func InitializeRouter() error {
