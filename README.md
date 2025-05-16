@@ -34,30 +34,15 @@ Start the PostgreSQL database using Docker Compose:
    go mod download
    ```
 
-3. Install golang-migrate:
-   - On Windows (using Scoop):
-     ```bash
-     scoop install migrate
-     ```
-   - On macOS (using Homebrew):
-     ```bash
-     brew install golang-migrate
-     ```
-   - Or download the binary directly from the [golang-migrate releases page](https://github.com/golang-migrate/migrate/releases)
+3. Set up your database connection variables in db.env.
 
-4. Set up your database connection variables in db.env.
-
-5. Run database migrations:
-   ```bash
-   migrate -path ./migrations/ -database "$DATABASE_URL" up
-   ```
-
-6. Start the backend server:
+4. Start the backend server:
    ```bash
    go run main.go
    ```
+   If you run into issues, try running `./start.sh`
 
-The backend server will start on `http://localhost:8080`. You can test it by making a request to `http://localhost:8080/ping`
+The backend server will start on `http://localhost:8080`, and automatically populate the tables with data from the UCLA website. You can test it by making a request to `http://localhost:8080/ping`
 
 ### Frontend Setup
 
