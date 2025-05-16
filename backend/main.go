@@ -80,6 +80,11 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/search",
 		handlers.DishesSearchHandler(DBManager))
 
+	// Register ratings route
+	router.POST("/ratings",
+		handlers.AuthMiddleware(),
+		handlers.SubmitRatingHandler(DBManager))
+
 }
 
 func InitializeRouter() error {
