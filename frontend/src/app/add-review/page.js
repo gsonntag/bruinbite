@@ -60,11 +60,20 @@ export default function AddReview() {
       date: `${year}-${month}-${day}`
     }));
 
-    // Set time
+    // Set time with rounded minutes
     let hours = now.getHours();
     const isPM = hours >= 12;
     hours = hours % 12 || 12; // Convert to 12-hour format
-    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    // Round minutes to nearest 15-minute interval
+    const currentMinutes = now.getMinutes();
+    const roundedMinutes = Math.round(currentMinutes / 15) * 15;
+    const minutes = String(roundedMinutes === 60 ? 0 : roundedMinutes).padStart(2, '0');
+    
+    // If we rounded to 60, increment the hour
+    if (roundedMinutes === 60) {
+      hours = (hours % 12) + 1;
+    }
     
     setTime({
       hours: String(hours).padStart(2, '0'),
@@ -126,10 +135,10 @@ export default function AddReview() {
                     onChange={(e) => handleTimeChange('minutes', e.target.value)}
                     className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {Array.from({ length: 60 }, (_, i) => i).map((minute) => (
-                      <option key={minute} value={minute.toString().padStart(2, '0')}>
-                        {minute.toString().padStart(2, '0')}
-                      </option>
+                    {[0, 15, 30, 45].map((minute) => (
+                        <option key={minute} value={minute.toString().padStart(2, '0')}>
+                            {minute.toString().padStart(2, '0')}
+                        </option>
                     ))}
                   </select>
                   <button
