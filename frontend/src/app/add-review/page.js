@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useRouter } from 'next/navigation';
 
@@ -20,6 +20,31 @@ export default function AddReview() {
     isPM: false
   });
 
+  const determineMealPeriod = (hours, isPM) => {
+    // Convert to 24-hour format
+    let hour24 = parseInt(hours);
+    if (isPM && hour24 !== 12) hour24 += 12;
+    if (!isPM && hour24 === 12) hour24 = 0;
+
+    if (hour24 >= 3 && hour24 < 11) {
+      return 'Breakfast';
+    } else if (hour24 >= 11 && hour24 < 16) {
+      return 'Lunch';
+    } else if (hour24 >= 16 && hour24 < 21) {
+      return 'Dinner';
+    } else {
+      return 'Late Night';
+    }
+  };
+
+  const updateMealPeriod = (hours, isPM) => {
+    const mealPeriod = determineMealPeriod(hours, isPM);
+    setFormData(prev => ({
+      ...prev,
+      mealPeriod
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     // TODO: Implement review submission logic
@@ -35,17 +60,27 @@ export default function AddReview() {
   };
 
   const handleTimeChange = (field, value) => {
-    setTime(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setTime(prev => {
+      const newTime = {
+        ...prev,
+        [field]: value
+      };
+      // Update meal period whenever time changes
+      updateMealPeriod(newTime.hours, newTime.isPM);
+      return newTime;
+    });
   };
 
   const toggleAMPM = () => {
-    setTime(prev => ({
-      ...prev,
-      isPM: !prev.isPM
-    }));
+    setTime(prev => {
+      const newTime = {
+        ...prev,
+        isPM: !prev.isPM
+      };
+      // Update meal period when AM/PM changes
+      updateMealPeriod(newTime.hours, newTime.isPM);
+      return newTime;
+    });
   };
 
   const setCurrentDateTime = () => {
@@ -75,11 +110,15 @@ export default function AddReview() {
       hours = (hours % 12) + 1;
     }
     
-    setTime({
+    const newTime = {
       hours: String(hours).padStart(2, '0'),
       minutes,
       isPM
-    });
+    };
+    
+    setTime(newTime);
+    // Update meal period based on the new time
+    updateMealPeriod(newTime.hours, newTime.isPM);
   };
 
   return (
@@ -136,9 +175,9 @@ export default function AddReview() {
                     className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {[0, 15, 30, 45].map((minute) => (
-                        <option key={minute} value={minute.toString().padStart(2, '0')}>
-                            {minute.toString().padStart(2, '0')}
-                        </option>
+                      <option key={minute} value={minute.toString().padStart(2, '0')}>
+                        {minute.toString().padStart(2, '0')}
+                      </option>
                     ))}
                   </select>
                   <button
@@ -151,6 +190,11 @@ export default function AddReview() {
                     {time.isPM ? 'PM' : 'AM'}
                   </button>
                 </div>
+                {formData.mealPeriod && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Meal Period: <span className="font-medium">{formData.mealPeriod}</span>
+                  </p>
+                )}
               </div>
             </div>
 
