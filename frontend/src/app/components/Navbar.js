@@ -5,10 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { logout } from '../services/auth';
 import toast from 'react-hot-toast';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
     const [showLoginForm, setShowLoginForm] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const pathname = usePathname();
 
     // Check if user is logged in on component mount
     useEffect(() => {
@@ -21,6 +23,7 @@ export default function Navbar() {
             await logout();
             setIsLoggedIn(false);
             toast.success('Successfully logged out');
+            window.location.href = '/'; // Redirect to home page after logout
         } catch (error) {
             console.error('Logout failed:', error);
             toast.error('Failed to log out');
@@ -50,7 +53,7 @@ export default function Navbar() {
                         </span>
                     </Link>
                     <div className="flex items-center gap-4">
-                        {isLoggedIn && (
+                        {isLoggedIn && pathname !== '/add-review' && (
                             <Link href="/add-review">
                                 <button className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300">
                                     Add a Review
@@ -77,5 +80,5 @@ export default function Navbar() {
             </header>
             {showLoginForm && <LoginForm onClose={() => setShowLoginForm(false)} onLoginSuccess={handleLoginSuccess} />}
         </div>
-    )
+    );
 }
