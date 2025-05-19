@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LoginForm from './LoginForm';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,12 +9,28 @@ import toast from 'react-hot-toast';
 export default function Navbar() {
     const [showLoginForm, setShowLoginForm] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef(null);
 
     // Check if user is logged in on component mount
     useEffect(() => {
         const token = localStorage.getItem('jwt');
         setIsLoggedIn(!!token);
     }, []);
+
+    // Close the dropdown when clicking outside of it
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [dropdownRef]);
 
     const handleLogout = async () => {
         try {
@@ -32,6 +48,10 @@ export default function Navbar() {
         setShowLoginForm(false);
         toast.success('Successfully logged in');
     };
+
+    const toggleDropdown = () => {
+        setShowDropdown(!showDropdown);
+    }
 
     return (
         <div>
@@ -52,12 +72,29 @@ export default function Navbar() {
                     <div className="flex items-center gap-4">
                         <button className={`px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300`}>Add a Review</button>
                         {isLoggedIn ? (
-                            <button 
-                                onClick={handleLogout}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
-                            >
-                                Log Out
-                            </button>
+                            // profile picture with dropdown
+                                <div className="relative" ref={dropdownRef}>
+                                    <button
+                                        onClick={toggleDropdown}
+                                        className="flex items-center gap-2 px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300"
+                                    >
+                                        <Image
+                                            src="/profile-pic.png"
+                                            alt="Profile Picture"
+                                            width={32}
+                                            height={32}
+                                            className="h-8 w-8 rounded-full"
+                                        />
+                                        <span>Profile</span>
+                                    </button>
+                                    {showDropdown && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+                                            <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</Link>
+                                            <Link href="/favorites" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Favorites</Link>
+                                            <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Log Out</button>
+                                        </div>
+                                    )}
+                                </div>
                         ) : (
                             <button 
                                 onClick={() => setShowLoginForm(true)} 

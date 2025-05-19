@@ -81,11 +81,15 @@ func RegisterRoutes(router *gin.Engine) {
 		handlers.DishesSearchHandler(DBManager))
 
 	// Register ratings route
+	// expecting body params: dish_id, rating, comment (optional)
+	// e.g. {"dish_id": 1, "rating": 4.5, "comment": "Great dish!"}
 	router.POST("/ratings",
 		handlers.AuthMiddleware(),
 		handlers.SubmitRatingHandler(DBManager))
 
-	// Regiter menu route
+	// Register menu route
+	// expecting query params: hall_id, day, month, year, meal_period
+	// e.g. /menu?hall_id=1&day=1&month=1&year=2023&meal_period=LUNCH
 	router.GET("/menu",
 		handlers.AuthMiddleware(),
 		handlers.GetMenuHandler(DBManager))
