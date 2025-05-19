@@ -91,7 +91,6 @@ func RegisterRoutes(router *gin.Engine) {
 	// expecting query params: hall_id, day, month, year, meal_period
 	// e.g. /menu?hall_id=1&day=1&month=1&year=2023&meal_period=LUNCH
 	router.GET("/menu",
-		handlers.AuthMiddleware(),
 		handlers.GetMenuHandler(DBManager))
 }
 
