@@ -80,6 +80,11 @@ export default function Navbar() {
                                 </button>
                             </Link>
                         )}
+                        <Link href="/menus">
+                            <button className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300">
+                                Menus
+                            </button>
+                        </Link>
                         {isLoggedIn ? (
                             // profile picture with dropdown
                                 <div className="relative" ref={dropdownRef}>
