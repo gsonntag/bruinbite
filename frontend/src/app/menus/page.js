@@ -11,12 +11,28 @@ const hallApiNameToFormName = {
     'bruin-cafe': 'Bruin Cafe',
     'cafe-1919': 'Cafe 1919',
     'epicuria-at-ackerman': 'Epicuria at Ackerman',
-    'meal-swipe-exchange': 'Meal Swipe Exchange',
     'rendezvous': 'Rendezvous',
     'the-drey': 'The Drey',
     'the-study-at-hedrick': 'The Study at Hedrick',
     'spice-kitchen': 'Spice Kitchen'
 };
+
+const mealPeriodNames = {
+    'BREAKFAST': 'Breakfast',
+    'LUNCH': 'Lunch',
+    'DINNER': 'Dinner',
+    'ALL_DAY': 'All Day',
+    'LUNCH_DINNER': 'Lunch & Dinner'
+}
+
+// get valid meal periods for a certain day given a hall
+async function getMealPeriods(hall_name, month, day, year) {
+    const res = await fetch(
+        `http://localhost:8080/hall-meal-periods?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}`
+    );
+    if (!res.ok) throw new Error('Failed to fetch meal periods');
+    return res.json();           // ← expected to return string[] like ["BREAKFAST","LUNCH"]
+}
 
 // get menu from api
 async function getMenu(hall_name, month, day, year, meal_period) {
@@ -27,14 +43,30 @@ async function getMenu(hall_name, month, day, year, meal_period) {
     return response.json();
 }
 
+async function loadPeriods(hallName, formValues, setFormValues, setMealPeriods) {
+    try {
+        const { date } = formValues;
+        const periods = await getMealPeriods(hallName, date.month, date.day, date.year);
+        setMealPeriods(periods["periods"])
+
+        // change period if currently selected no longer exists
+        if (formValues.mealPeriod == null || !periods["periods"].includes(formValues.mealPeriod))
+            setFormValues(v => ({...v, mealPeriod: periods[0] || ''}))
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 function getCurrentMealPeriod() {
     const currentHour = new Date().getHours();
     if (currentHour < 11) {
         return 'BREAKFAST';
     } else if (currentHour < 16) {
         return 'LUNCH';
-    } else {
+    } else if (currentHour < 21) {
         return 'DINNER';
+    } else {
+        return 'LATE_NIGHT'
     }
 }
 
@@ -52,6 +84,8 @@ export default function Menus() {
             year: today.getFullYear()
         }
     });
+
+    const [mealPeriods, setMealPeriods] = useState([])
     
     // Form values
     const [formValues, setFormValues] = useState({
@@ -65,12 +99,13 @@ export default function Menus() {
     });
     
     const [menu, setMenu] = useState([]);
-    const [fetchedmenu, setFetchedmenu] = useState(false);
+    const [fetchedMenu, setFetchedMenu] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    const fetchmenu = async () => {
+    const fetchMenu = async () => {
         try {
             setLoading(true);
+            console.log(`period ${formValues.mealPeriod}`)
             const data = await getMenu(
                 formValues.hallName, 
                 formValues.date.month, 
@@ -79,7 +114,7 @@ export default function Menus() {
                 formValues.mealPeriod
             );
             setMenu(data.menu);
-            setFetchedmenu(true);
+            setFetchedMenu(true);
             
             // Update the current search parameters only after successful fetch
             setCurrentSearch({...formValues});
@@ -93,12 +128,16 @@ export default function Menus() {
     };
     
     useEffect(() => {
-        fetchmenu();
+        (async () => {
+            await loadPeriods(formValues.hallName, formValues, setFormValues, setMealPeriods);
+            fetchMenu();
+        })()
     }, []);
  
     // Form change handlers
     const handleHallChange = (e) => {
         setFormValues({...formValues, hallName: e.target.value});
+        loadPeriods(e.target.value, formValues, setFormValues, setMealPeriods)
     };
     
     const handleMealPeriodChange = (e) => {
@@ -152,9 +191,11 @@ export default function Menus() {
                                 onChange={handleMealPeriodChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value="BREAKFAST">Breakfast</option>
-                                <option value="LUNCH">Lunch</option>
-                                <option value="DINNER">Dinner</option>
+                                {mealPeriods.map(p => (
+                                    <option key={p} value={p}>
+                                        {mealPeriodNames[p]}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         
@@ -172,7 +213,7 @@ export default function Menus() {
                         
                         <div className="flex items-end">
                             <button 
-                                onClick={fetchmenu} 
+                                onClick={fetchMenu} 
                                 className="w-full bg-[#0d92db] hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:bg-blue-300"
                                 disabled={loading}
                             >
@@ -187,7 +228,7 @@ export default function Menus() {
                     <div className="bg-white rounded-lg shadow-md p-8 text-center">
                         <p className="text-gray-500 mb-4">Loading menu...</p>
                     </div>
-                ) : fetchedmenu ? (
+                ) : fetchedMenu ? (
                     <div>
                         <h2 className="text-2xl font-semibold mb-6">
                             {menu.hall && menu.hall.name || hallApiNameToFormName[currentSearch.hallName]} - {currentSearch.mealPeriod.charAt(0) + currentSearch.mealPeriod.slice(1).toLowerCase()} Menu

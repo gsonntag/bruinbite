@@ -267,3 +267,23 @@ func (m *DBManager) GetMenuByHallNameAndDate(hallName string, date models.Date) 
 	}
 	return &menu, nil
 }
+
+func (m *DBManager) GetMealPeriodsForDate(hallName string, date models.Date) ([]string, error) {
+	var periods []string
+
+	err := m.DB.
+		Table("menus").
+		Joins("JOIN dining_halls ON dining_halls.id = menus.hall_id").
+		Where(`dining_halls.name = ? AND date_day   = ? 
+			   AND date_month = ? AND date_year = ?`,
+			hallName, date.Day, date.Month, date.Year).
+		Distinct().
+		Order("date_meal_period").
+		Pluck("date_meal_period", &periods).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return periods, nil
+}
