@@ -24,12 +24,6 @@ func NewDBManager(db *gorm.DB) (*DBManager, error) {
 
 // Use GORM to automatically migrate our models if there are any changes to them
 func (m *DBManager) Migrate() error {
-	loc := "De Neve Commons"
-	deNeve := models.DiningHall{ID: 1, Name: "De Neve", Location: &loc, Dishes: []models.Dish{}, Menus: []models.Menu{}}
-	dish1 := models.Dish{ID: 1, HallID: deNeve.ID, Hall: deNeve, Name: "Lobster Mac", Description: nil, AverageRating: 0.0, Tags: []string{}, Ratings: []models.Rating{}}
-	deNeve.Dishes = append(deNeve.Dishes, dish1)
-	m.DB.Create(&deNeve)
-	m.DB.Create(&dish1)
 
 	return m.DB.AutoMigrate(
 		&models.UpdateTracker{},
@@ -201,9 +195,9 @@ func (m *DBManager) GetAllDishesByHallName(hallName string) ([]models.Dish, erro
 	}
 	// use hall ID to find all dishes
 
-	err = m.DB.Where("hall_id=?", hall.ID).Find(&dishes).Error
-	if err != nil {
-		return nil, err
+	err2 := m.DB.Where("hall_id=?", hall.ID).Find(&dishes).Error
+	if err2 != nil {
+		return nil, err2
 	}
 	return dishes, nil
 }
@@ -230,4 +224,27 @@ func (m *DBManager) GetDishesByName(name string, limit int) ([]models.Dish, erro
 		return nil, err
 	}
 	return dishes, nil
+}
+
+// CreateRating creates a new rating for a dish
+func (m *DBManager) CreateRating(rating *models.Rating) error {
+	return m.DB.Create(rating).Error
+}
+
+func (m *DBManager) GetMenuByHallIDAndDate(hallID uint, date models.Date) (*models.Menu, error) {
+	var menu models.Menu
+
+	err := m.DB.Preload("Dishes").
+		Where("hall_id = ? AND date_day = ? AND date_month = ? AND date_year = ? AND date_meal_period = ?",
+			hallID,
+			date.Day,
+			date.Month,
+			date.Year,
+			date.MealPeriod).
+		First(&menu).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &menu, nil
 }
