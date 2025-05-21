@@ -3,16 +3,24 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useRouter } from 'next/navigation';
 
-// TODO: possibly dynamically get the hall id to name mapping
-const hallIdToName = {
-    1: 'De Neve',
-    7: 'Bruin Plate',
-    8: 'Epicuria'
+// TODO: possibly dynamically get the hall names from the API
+const hallApiNameToFormName = {
+    'bruin-plate': 'Bruin Plate',
+    'de-neve-dining': 'De Neve Dining',
+    'epicuria-at-covel': 'Epicuria at Covel',
+    'bruin-cafe': 'Bruin Cafe',
+    'cafe-1919': 'Cafe 1919',
+    'epicuria-at-ackerman': 'Epicuria at Ackerman',
+    'meal-swipe-exchange': 'Meal Swipe Exchange',
+    'rendezvous': 'Rendezvous',
+    'the-drey': 'The Drey',
+    'the-study-at-hedrick': 'The Study at Hedrick',
+    'spice-kitchen': 'Spice Kitchen'
 };
 
 // get menu from api
-async function getMenu(hall_id, month, day, year, meal_period) {
-    const response = await fetch(`http://localhost:8080/menu?hall_id=${hall_id}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`);
+async function getMenu(hall_name, month, day, year, meal_period) {
+    const response = await fetch(`http://localhost:8080/menu?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`);
     if (!response.ok) {
         throw new Error('Failed to fetch menu');
     }
@@ -36,7 +44,7 @@ export default function Menus() {
     
     // Current search parameters (used for display)
     const [currentSearch, setCurrentSearch] = useState({
-        hallId: 1,
+        hallName: 'de-neve-dining',
         mealPeriod: getCurrentMealPeriod(),
         date: {
             month: today.getMonth() + 1,
@@ -47,7 +55,7 @@ export default function Menus() {
     
     // Form values
     const [formValues, setFormValues] = useState({
-        hallId: 1,
+        hallName: 'de-neve-dining',
         mealPeriod: getCurrentMealPeriod(),
         date: {
             month: today.getMonth() + 1,
@@ -64,7 +72,7 @@ export default function Menus() {
         try {
             setLoading(true);
             const data = await getMenu(
-                formValues.hallId, 
+                formValues.hallName, 
                 formValues.date.month, 
                 formValues.date.day, 
                 formValues.date.year, 
@@ -90,7 +98,7 @@ export default function Menus() {
  
     // Form change handlers
     const handleHallChange = (e) => {
-        setFormValues({...formValues, hallId: e.target.value});
+        setFormValues({...formValues, hallName: e.target.value});
     };
     
     const handleMealPeriodChange = (e) => {
@@ -123,12 +131,12 @@ export default function Menus() {
                                 Dining Hall
                             </label>
                             <select 
-                                value={formValues.hallId} 
+                                value={formValues.hallName} 
                                 onChange={handleHallChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                {Object.entries(hallIdToName).map(([id, name]) => (
-                                    <option key={id} value={id}>
+                                {Object.entries(hallApiNameToFormName).map(([apiName, name]) => (
+                                    <option key={apiName} value={apiName}>
                                         {name}
                                     </option>
                                 ))}
@@ -182,7 +190,7 @@ export default function Menus() {
                 ) : fetchedmenu ? (
                     <div>
                         <h2 className="text-2xl font-semibold mb-6">
-                            {menu.hall && menu.hall.name || hallIdToName[currentSearch.hallId]} - {currentSearch.mealPeriod.charAt(0) + currentSearch.mealPeriod.slice(1).toLowerCase()} Menu
+                            {menu.hall && menu.hall.name || hallApiNameToFormName[currentSearch.hallName]} - {currentSearch.mealPeriod.charAt(0) + currentSearch.mealPeriod.slice(1).toLowerCase()} Menu
                         </h2>
 
                         {/* group dishes by location */}

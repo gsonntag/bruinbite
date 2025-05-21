@@ -8,10 +8,10 @@ import (
 )
 
 type MenusQuery struct {
-	HallID uint     `form:"hall_id" binding:"required"`
-	Day    int      `form:"day" binding:"required"`
-	Month  int      `form:"month" binding:"required"`
-	Year   int      `form:"year" binding:"required"`
+	HallName  string   `form:"hall_name" binding:"required"`
+	Day       int      `form:"day" binding:"required"`
+	Month     int      `form:"month" binding:"required"`
+	Year      int      `form:"year" binding:"required"`
 	MealPeriod *string `form:"meal_period" binding:"required"`
 }
 
@@ -30,7 +30,7 @@ func GetMenuHandler(mgr *db.DBManager) gin.HandlerFunc {
 			MealPeriod: query.MealPeriod,
 		}
 
-		menu, err := mgr.GetMenuByHallIDAndDate(query.HallID, date)
+		menu, err := mgr.GetMenuByHallNameAndDate(query.HallName, date)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -40,5 +40,4 @@ func GetMenuHandler(mgr *db.DBManager) gin.HandlerFunc {
 			"menu": menu,
 		})
 	}
-		
 }

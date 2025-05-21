@@ -248,3 +248,22 @@ func (m *DBManager) GetMenuByHallIDAndDate(hallID uint, date models.Date) (*mode
 	}
 	return &menu, nil
 }
+
+func (m *DBManager) GetMenuByHallNameAndDate(hallName string, date models.Date) (*models.Menu, error) {
+	var menu models.Menu
+
+	err := m.DB.Preload("Dishes").
+		Joins("JOIN dining_halls ON dining_halls.id = menus.hall_id").
+		Where("dining_halls.name = ? AND date_day = ? AND date_month = ? AND date_year = ? AND date_meal_period = ?",
+			hallName,
+			date.Day,
+			date.Month,
+			date.Year,
+			date.MealPeriod).
+		First(&menu).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &menu, nil
+}
