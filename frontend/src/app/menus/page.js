@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import { useRouter } from 'next/navigation';
 
@@ -50,10 +50,16 @@ async function loadPeriods(hallName, formValues, setFormValues, setMealPeriods) 
         setMealPeriods(periods["periods"])
 
         // change period if currently selected no longer exists
-        if (formValues.mealPeriod == null || !periods["periods"].includes(formValues.mealPeriod))
-            setFormValues(v => ({...v, mealPeriod: periods[0] || ''}))
+        let selectedPeriod = formValues.mealPeriod;
+        if (formValues.mealPeriod == null || !periods["periods"].includes(formValues.mealPeriod)) {
+            selectedPeriod = periods["periods"][0] || '';
+            setFormValues(v => ({...v, mealPeriod: selectedPeriod}))
+        }
+        
+        return selectedPeriod;
     } catch (e) {
         console.error(e)
+        return formValues.mealPeriod;
     }
 }
 
@@ -102,22 +108,22 @@ export default function Menus() {
     const [fetchedMenu, setFetchedMenu] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    const fetchMenu = async () => {
+    const fetchMenuWithPeriod = useCallback(async (hallName, date, mealPeriod) => {
         try {
             setLoading(true);
-            console.log(`period ${formValues.mealPeriod}`)
+            console.log(`period ${mealPeriod}`)
             const data = await getMenu(
-                formValues.hallName, 
-                formValues.date.month, 
-                formValues.date.day, 
-                formValues.date.year, 
-                formValues.mealPeriod
+                hallName, 
+                date.month, 
+                date.day, 
+                date.year, 
+                mealPeriod
             );
             setMenu(data.menu);
             setFetchedMenu(true);
             
             // Update the current search parameters only after successful fetch
-            setCurrentSearch({...formValues});
+            setCurrentSearch({hallName, date, mealPeriod});
         } catch (error) {
             console.error('Error fetching menu:', error);
             // pop a toast
@@ -125,19 +131,40 @@ export default function Menus() {
         } finally {
             setLoading(false);
         }
+    }, []);
+
+    const fetchMenu = async () => {
+        return fetchMenuWithPeriod(formValues.hallName, formValues.date, formValues.mealPeriod);
     };
     
     useEffect(() => {
-        (async () => {
-            await loadPeriods(formValues.hallName, formValues, setFormValues, setMealPeriods);
-            fetchMenu();
-        })()
-    }, []);
+        const initializeMenu = async () => {
+            const today = new Date();
+            const initialHallName = 'de-neve-dining';
+            const initialDate = {
+                month: today.getMonth() + 1,
+                day: today.getDate(),
+                year: today.getFullYear()
+            };
+            const initialFormValues = {
+                hallName: initialHallName,
+                mealPeriod: getCurrentMealPeriod(),
+                date: initialDate
+            };
+            
+            const selectedPeriod = await loadPeriods(initialHallName, initialFormValues, setFormValues, setMealPeriods);
+            // Only fetch menu after meal periods have been loaded, using the correct period
+            await fetchMenuWithPeriod(initialHallName, initialDate, selectedPeriod);
+        };
+        
+        initializeMenu();
+    }, [fetchMenuWithPeriod]);
  
     // Form change handlers
-    const handleHallChange = (e) => {
-        setFormValues({...formValues, hallName: e.target.value});
-        loadPeriods(e.target.value, formValues, setFormValues, setMealPeriods)
+    const handleHallChange = async (e) => {
+        const newHallName = e.target.value;
+        setFormValues({...formValues, hallName: newHallName});
+        await loadPeriods(newHallName, formValues, setFormValues, setMealPeriods);
     };
     
     const handleMealPeriodChange = (e) => {
