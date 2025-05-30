@@ -38,8 +38,28 @@ func SubmitRatingHandler(mgr *db.DBManager) gin.HandlerFunc {
 		if err := mgr.CreateRating(&rating); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
-		}
+		}		
 
 		c.JSON(http.StatusOK, gin.H{"message": "Rating submitted successfully"})
+	}
+}
+
+
+func GetUserRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// get user ID from context
+		userId, err := strconv.Atoi(c.GetString("userId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+			return
+		}
+
+		ratings, err := mgr.GetAllRatingsByUserID(uint(userId))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, ratings)
 	}
 }

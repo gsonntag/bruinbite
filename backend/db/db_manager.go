@@ -249,6 +249,24 @@ func (m *DBManager) GetMenuByHallIDAndDate(hallID uint, date models.Date) (*mode
 	return &menu, nil
 }
 
+
+// GetAllRatingsByUserID retrieves all ratings made by a user
+// preload dish and user info
+func (m *DBManager) GetAllRatingsByUserID(userID uint) ([]models.Rating, error) {
+	var ratings []models.Rating
+
+	err := m.DB.Preload("Dish").Preload("User").
+		Where("user_id = ?", userID).
+		Find(&ratings).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ratings, nil
+}
+
+
 func (m *DBManager) GetMenuByHallNameAndDate(hallName string, date models.Date) (*models.Menu, error) {
 	var menu models.Menu
 
