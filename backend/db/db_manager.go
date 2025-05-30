@@ -228,6 +228,36 @@ func (m *DBManager) GetDishesByName(name string, limit int) ([]models.Dish, erro
 
 // CreateRating creates a new rating for a dish
 func (m *DBManager) CreateRating(rating *models.Rating) error {
+	// update the average rating of the dish
+	var dish models.Dish
+	err := m.DB.First(&dish, rating.DishID).Error
+	if err != nil {
+		return fmt.Errorf("could not find dish with ID %d: %w", rating.DishID, err)
+	}
+	// Calculate new average rating
+	var ratingsCount int64
+	err = m.DB.Model(&models.Rating{}).Where("dish_id = ?", rating.DishID).Count(&ratingsCount).Error
+	if err != nil {
+		return fmt.Errorf("could not count ratings for dish with ID %d: %w", rating.DishID, err)
+	}
+	if ratingsCount == 0 {
+		dish.AverageRating = float64(rating.Score)
+	} else {
+		var totalRating float64
+		err = m.DB.Model(&models.Rating{}).Where("dish_id = ?", rating.DishID).Select("SUM(score)").Scan(&totalRating).Error
+		if err != nil {
+			return fmt.Errorf("could not sum ratings for dish with ID %d: %w", rating.DishID, err)
+		}
+		dish.AverageRating = (totalRating + float64(rating.Score)) / float64(ratingsCount+1)
+	}
+	// Save the updated dish average rating
+	err = m.DB.Save(&dish).Error
+	if err != nil {
+		return fmt.Errorf("could not update dish average rating: %w", err)
+	}
+	// log the avg rating
+	fmt.Printf("Updated average rating for dish ID %d: %.5f\n", dish.ID, dish.AverageRating)
+	// Create the rating
 	return m.DB.Create(rating).Error
 }
 
@@ -266,6 +296,20 @@ func (m *DBManager) GetAllRatingsByUserID(userID uint) ([]models.Rating, error) 
 	return ratings, nil
 }
 
+// GetAllRatingsByDishID retrieves all ratings made for a dish
+func (m *DBManager) GetAllRatingsByDishID(dishID uint) ([]models.Rating, error) {
+	var ratings []models.Rating
+
+	err := m.DB.Preload("User").
+		Where("dish_id = ?", dishID).
+		Find(&ratings).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ratings, nil
+}
 
 func (m *DBManager) GetMenuByHallNameAndDate(hallName string, date models.Date) (*models.Menu, error) {
 	var menu models.Menu

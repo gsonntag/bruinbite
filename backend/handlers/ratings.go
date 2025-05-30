@@ -63,3 +63,28 @@ func GetUserRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
 		c.JSON(http.StatusOK, ratings)
 	}
 }
+
+// GetDishRatingsHandler retrieves all ratings made for a dish
+func GetDishRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		dishIDStr := c.Query("dish_id")
+		if dishIDStr == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "dish_id is required"})
+			return
+		}
+
+		dishID, err := strconv.Atoi(dishIDStr)
+		if err != nil || dishID <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid dish_id"})
+			return
+		}
+
+		ratings, err := mgr.GetAllRatingsByDishID(uint(dishID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, ratings)
+	}
+}

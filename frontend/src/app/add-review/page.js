@@ -267,7 +267,7 @@ export default function AddReview() {
         // one review per dish
         const allReviews = Object.entries(reviewData.dishReviews).map(([dishId, review]) => ({
             dish_id: parseInt(dishId),
-            score: review.rating ? parseInt(review.rating) : null,
+            score: review.rating ? parseInt(review.rating)*2 : null,
             comment: review.review || ''
         }));
 
