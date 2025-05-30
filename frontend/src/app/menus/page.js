@@ -258,7 +258,7 @@ export default function Menus() {
                 ) : fetchedMenu ? (
                     <div>
                         <h2 className="text-2xl font-semibold mb-6">
-                            {menu.hall && menu.hall.name || hallApiNameToFormName[currentSearch.hallName]} - {currentSearch.mealPeriod.charAt(0) + currentSearch.mealPeriod.slice(1).toLowerCase()} Menu
+                            {menu.hall && menu.hall.name || hallApiNameToFormName[currentSearch.hallName]} - {mealPeriodNames[currentSearch.mealPeriod]} Menu
                         </h2>
 
                         {/* group dishes by location */}

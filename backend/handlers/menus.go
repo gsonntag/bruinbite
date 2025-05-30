@@ -25,6 +25,11 @@ type DayQuery struct {
 	Year     int    `form:"year" binding:"required"`
 }
 
+func HallHasAllDayBreakfast(hallName string) bool {
+	allPeriodsBreakfast := []string{"the-drey", "rendezvous", "epicuria-at-ackerman", "bruin-cafe"}
+	return slices.Contains(allPeriodsBreakfast, hallName)
+}
+
 func GetMenuHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var query MenusQuery
@@ -38,6 +43,10 @@ func GetMenuHandler(mgr *db.DBManager) gin.HandlerFunc {
 			Month:      query.Month,
 			Year:       query.Year,
 			MealPeriod: query.MealPeriod,
+		}
+
+		if HallHasAllDayBreakfast(query.HallName) {
+			*query.MealPeriod = "BREAKFAST" // internal storage, convert back
 		}
 
 		menu, err := mgr.GetMenuByHallNameAndDate(query.HallName, date)
