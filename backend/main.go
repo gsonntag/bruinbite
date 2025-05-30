@@ -107,6 +107,10 @@ func RegisterRoutes(router *gin.Engine) {
 	// Gets all valid meal periods for a given date
 	router.GET("/hall-meal-periods",
 		handlers.GetHallMealPeriods(DBManager))
+
+	// Get all dining halls with their ratings
+	router.GET("/dining-halls",
+		handlers.GetAllDiningHallsHandler(DBManager))
 }
 
 func InitializeRouter() error {

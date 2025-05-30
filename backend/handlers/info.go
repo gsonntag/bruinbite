@@ -45,3 +45,16 @@ func GetAllHallDishesHandler(mgr *db.DBManager) gin.HandlerFunc {
 		})
 	}
 }
+
+func GetAllDiningHallsHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		halls, err := mgr.GetAllHallsWithRatings()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"dining_halls": halls,
+		})
+	}
+}
