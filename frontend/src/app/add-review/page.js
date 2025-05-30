@@ -262,56 +262,50 @@ export default function AddReview() {
             return;
         }
         
-        // Prepare the data structure for the future API endpoint
-        const submissionData = {
-            // Dining context
-            dining_context: {
-                hall_name: formValues.hallName,
-                hall_display_name: hallApiNameToFormName[formValues.hallName],
-                date: {
-                    year: formValues.date.year,
-                    month: formValues.date.month,
-                    day: formValues.date.day,
-                    formatted: `${formValues.date.year}-${String(formValues.date.month).padStart(2, '0')}-${String(formValues.date.day).padStart(2, '0')}`
-                },
-                meal_period: formValues.mealPeriod,
-                meal_period_display: mealPeriodNames[formValues.mealPeriod]
-            },
-            // Individual dish reviews
-            reviews: reviewData.selectedDishes.map(dishId => {
-                const dish = menu.dishes.find(d => d.id === dishId);
-                const review = reviewData.dishReviews[dishId];
-                return {
-                    dish_id: dishId,
-                    dish_name: dish?.name,
-                    dish_location: dish?.location,
-                    rating: parseInt(review.rating),
-                    comment: review.review || null,
-                    // submitted_at: <current timestamp>,
-                    // id: <generated review id by the backend to prevent collisions and duplications>,
-                    user_id: userInfo.id, // Use userInfo from API
-                };
-            }),
-            // Metadata
-            submission_metadata: {
-                total_reviews: reviewData.selectedDishes.length,
-                user_id: userInfo.id, 
-                username: userInfo.username, 
+        // create json to send to server
+        // ex: { "dish_id": 1, "score": 10, "comment": "hi this is great" }
+        // one review per dish
+        const allReviews = Object.entries(reviewData.dishReviews).map(([dishId, review]) => ({
+            dish_id: parseInt(dishId),
+            score: review.rating ? parseInt(review.rating) : null,
+            comment: review.review || ''
+        }));
+
+        console.log('REVIEWS TO SUBMIT:', allReviews);
+         
+
+        // send to server, one review per dish
+        for (const review of allReviews) {
+            if (review.score == null) {
+                alert('Please provide a rating for all selected dishes.');
+                return;
             }
-        };
+            if (review.score < 1 || review.score > 5) {
+                alert('Rating must be between 1 and 5 stars.');
+                return;
+            }
+            if (review.comment.length > 500) {
+                alert('Review comment cannot exceed 500 characters.');
+                return;
+            }
+            const response = await fetch('http://localhost:8080/ratings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('jwt')}` // use proper JWT
+                },
+                body: JSON.stringify(review)
+            });
 
-        // TODO: replace this with actual API call when backend is ready
-        // const response = await fetch('http://localhost:8080/ratings', { // this probably makes sense
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //         'Authorization': `Bearer ${localStorage.getItem('jwt')}` // use proper JWT
-        //     },
-        //     body: JSON.stringify(submissionData)
-        // });
+            console.log('SUBMISSION DATA WITH AUTHENTICATED USER:', review);
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error submitting review:', errorData);
+                alert(`Failed to submit review: ${errorData.message || 'Unknown error'}`);
+                return;
+            }
+        }
 
-        console.log('SUBMISSION DATA WITH AUTHENTICATED USER:', submissionData);
-        
         // successful submission
         setTimeout(() => {
             alert('Review submitted successfully! \n\nRedirecting to home page...');
