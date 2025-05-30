@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // Same mappings as in menus page
 const hallApiNameToFormName = {
@@ -94,24 +94,44 @@ function getCurrentMealPeriod() {
 
 export default function AddReview() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const today = new Date();
-    const [currentStep, setCurrentStep] = useState(1);
+    
+    // Check if we're coming from menus page with specific dish
+    const isFromMenus = searchParams.get('step') === '3';
+    const [currentStep, setCurrentStep] = useState(isFromMenus ? 3 : 1);
     
     // Authentication state (same as profile/page.js)
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [authChecked, setAuthChecked] = useState(false);
     const [userInfo, setUserInfo] = useState(null);
     
-    // Form values for location/time selection
-    const [formValues, setFormValues] = useState({
-        hallName: 'de-neve-dining',
-        mealPeriod: getCurrentMealPeriod(),
-        date: {
-            month: today.getMonth() + 1,
-            day: today.getDate(),
-            year: today.getFullYear()
+    // Initialize form values from URL params if coming from menus
+    const getInitialFormValues = () => {
+        if (isFromMenus) {
+            return {
+                hallName: searchParams.get('hallName') || 'de-neve-dining',
+                mealPeriod: searchParams.get('mealPeriod') || getCurrentMealPeriod(),
+                date: {
+                    month: parseInt(searchParams.get('month')) || today.getMonth() + 1,
+                    day: parseInt(searchParams.get('day')) || today.getDate(),
+                    year: parseInt(searchParams.get('year')) || today.getFullYear()
+                }
+            };
         }
-    });
+        return {
+            hallName: 'de-neve-dining',
+            mealPeriod: getCurrentMealPeriod(),
+            date: {
+                month: today.getMonth() + 1,
+                day: today.getDate(),
+                year: today.getFullYear()
+            }
+        };
+    };
+    
+    // Form values for location/time selection
+    const [formValues, setFormValues] = useState(getInitialFormValues());
 
     // Available meal periods for selected hall/date
     const [mealPeriods, setMealPeriods] = useState([]);
@@ -120,11 +140,25 @@ export default function AddReview() {
     // Menu data for dish selection
     const [menu, setMenu] = useState(null);
     
+    // Initialize review data with pre-selected dish if coming from menus
+    const getInitialReviewData = () => {
+        if (isFromMenus) {
+            const dishId = parseInt(searchParams.get('dishId'));
+            if (dishId) {
+                return {
+                    selectedDishes: [dishId],
+                    dishReviews: {}
+                };
+            }
+        }
+        return {
+            selectedDishes: [], 
+            dishReviews: {} 
+        };
+    };
+    
     // Review form data
-    const [reviewData, setReviewData] = useState({
-        selectedDishes: [], 
-        dishReviews: {} 
-    });
+    const [reviewData, setReviewData] = useState(getInitialReviewData());
 
     // Check if user is logged in on component mount (same as profile/page.js)
     useEffect(() => {
@@ -159,7 +193,31 @@ export default function AddReview() {
         if (authChecked && isLoggedIn) {
             loadPeriods(formValues.hallName, formValues, setFormValues, setMealPeriods);
         }
-    }, [formValues.hallName, formValues.date.month, formValues.date.day, formValues.date.year, authChecked, isLoggedIn]);
+    }, [formValues, authChecked, isLoggedIn]);
+
+    // Load menu automatically when coming from menus page
+    useEffect(() => {
+        if (isFromMenus && authChecked && isLoggedIn && mealPeriods.length > 0) {
+            const loadMenuForReview = async () => {
+                try {
+                    const data = await getMenu(
+                        formValues.hallName, 
+                        formValues.date.month, 
+                        formValues.date.day, 
+                        formValues.date.year, 
+                        formValues.mealPeriod
+                    );
+                    setMenu(data.menu);
+                } catch (error) {
+                    console.error('Error fetching menu for review:', error);
+                    // If menu loading fails, redirect back to step 1
+                    setCurrentStep(1);
+                }
+            };
+            
+            loadMenuForReview();
+        }
+    }, [isFromMenus, authChecked, isLoggedIn, mealPeriods.length, formValues]);
 
     // Don't render anything until auth check completes (same as profile/page.js)
     if (!authChecked) {
@@ -280,7 +338,7 @@ export default function AddReview() {
                 alert('Please provide a rating for all selected dishes.');
                 return;
             }
-            if (review.score < 1 || review.score > 5) {
+            if (review.score < 1 || review.score > 10) {
                 alert('Rating must be between 1 and 5 stars.');
                 return;
             }
@@ -493,9 +551,14 @@ export default function AddReview() {
         return (
             <div className="space-y-6">
                 <div className="text-center mb-8">
-                    <h2 className="text-xl font-semibold text-gray-800">Step 3: Write your reviews</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">
+                        {isFromMenus ? 'Write your review' : 'Step 3: Write your reviews'}
+                    </h2>
                     <p className="text-gray-600 mt-2">
-                        Rate and review each dish you selected ({selectedDishObjects.length} dish{selectedDishObjects.length !== 1 ? 'es' : ''})
+                        {isFromMenus 
+                            ? `Rate and review ${selectedDishObjects[0]?.name || 'this dish'} from ${hallApiNameToFormName[formValues.hallName]}`
+                            : `Rate and review each dish you selected (${selectedDishObjects.length} dish${selectedDishObjects.length !== 1 ? 'es' : ''})`
+                        }
                     </p>
                 </div>
 
@@ -503,10 +566,17 @@ export default function AddReview() {
                     {selectedDishObjects.map((dish, index) => (
                         <div key={dish.id} className="bg-gray-50 rounded-lg p-6">
                             <div className="flex items-center mb-4">
-                                <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3">
-                                    {index + 1}
-                                </span>
+                                {!isFromMenus && (
+                                    <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3">
+                                        {index + 1}
+                                    </span>
+                                )}
                                 <h3 className="text-xl font-semibold text-gray-900">{dish.name}</h3>
+                                {isFromMenus && (
+                                    <span className="ml-auto text-sm text-gray-500">
+                                        from {dish.location}
+                                    </span>
+                                )}
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -548,10 +618,10 @@ export default function AddReview() {
                     <div className="flex justify-between space-x-4 mt-8">
                         <button
                             type="button"
-                            onClick={handlePreviousStep}
+                            onClick={() => isFromMenus ? router.push('/menus') : handlePreviousStep()}
                             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
                         >
-                            Back
+                            {isFromMenus ? 'Back to Menu' : 'Back'}
                         </button>
                         <button
                             type="submit"
@@ -571,29 +641,33 @@ export default function AddReview() {
             <Navbar />
             <main className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">Add a Review</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+                        {isFromMenus ? 'Review Dish' : 'Add a Review'}
+                    </h1>
                     
-                    {/* Progress indicator */}
-                    <div className="flex items-center justify-center mb-8">
-                        <div className="flex items-center space-x-4">
-                            {[1, 2, 3].map((step) => (
-                                <div key={step} className="flex items-center">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                                        step <= currentStep 
-                                            ? 'bg-blue-600 text-white' 
-                                            : 'bg-gray-200 text-gray-600'
-                                    }`}>
-                                        {step}
+                    {/* Progress indicator - only show when not coming from menus */}
+                    {!isFromMenus && (
+                        <div className="flex items-center justify-center mb-8">
+                            <div className="flex items-center space-x-4">
+                                {[1, 2, 3].map((step) => (
+                                    <div key={step} className="flex items-center">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                                            step <= currentStep 
+                                                ? 'bg-blue-600 text-white' 
+                                                : 'bg-gray-200 text-gray-600'
+                                        }`}>
+                                            {step}
+                                        </div>
+                                        {step < 3 && (
+                                            <div className={`w-16 h-1 mx-2 ${
+                                                step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                                            }`} />
+                                        )}
                                     </div>
-                                    {step < 3 && (
-                                        <div className={`w-16 h-1 mx-2 ${
-                                            step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                                        }`} />
-                                    )}
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {currentStep === 1 && renderStep1()}
                     {currentStep === 2 && renderStep2()}
