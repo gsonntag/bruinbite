@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"sort"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gsonntag/bruinbite/db"
@@ -36,34 +37,21 @@ type RecommendedHallQuery struct {
 func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rawUser, ok := c.Get("user")
+		
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 		user := rawUser.(models.User)
 
-		var query RecommendedHallQuery
-		if err := c.ShouldBindQuery(&query); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		date := models.Date{
-			Day: query.Day,
-			Month: query.Month,
-			Year: query.Year,
-			MealPeriod: query.MealPeriod,
-		}
-
-		if query.MealPeriod == "ALL_DAY" || query.MealPeriod == "LUNCH_DINNER" {
-			query.MealPeriod = "BREAKFAST" // internally in the DB this is how it is stored
-		}
+		now := time.Now().In(mgr.TZ)
+		periods := GetAllowedMealPeriods(now)
 
 		// Fetch all menus for that meal period
 		var menus []models.Menu
 		if err := mgr.DB.Preload("Dishes").Where(
-			"date_day=? AND date_month=? AND date_year=? AND date_meal_period=?",
-			query.Day, query.Month, query.Year, query.MealPeriod,
+			"date_day=? AND date_month=? AND date_year=? AND date_meal_period IN ?",
+			now.Day(), int(now.Month()), now.Year, periods,
 		).Find(&menus).Error; err != nil && err != gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -168,8 +156,44 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"date": date,
 			"halls": results,
 		})
 	}
+}
+
+func GetMealPeriodForHall(hallName, mealPeriod string) string {
+	if hallName == "bruin-cafe" {
+		return "ALL_DAY"
+	}
+	if hallName == "epicuria-at-ackerman" || hallName == "rendezvous" || hallName == "the-drey" {
+		return "LUNCH_DINNER"
+	}
+	return mealPeriod
+} 
+
+func GetAllowedMealPeriods(now time.Time) []string {
+	mealPeriod := GetActualMealPeriod(now.Hour())
+	var results []string
+	results = append(results, mealPeriod)
+	if mealPeriod != "NONE" && mealPeriod != "LATE_NIGHT" {
+		results = append(results, "ALL_DAY")
+	}
+	if mealPeriod == "LUNCH" || mealPeriod == "DINNER" {
+		results = append(results, "LUNCH_DINNER")
+	}
+	return results
+}
+
+func GetActualMealPeriod(hour int) string {
+	// Source: https://dining.ucla.edu/hours/
+	if hour > 7 && hour < 10 {
+		return "BREAKFAST"
+	} else if hour > 11 && hour < 15 {
+		return "LUNCH"
+	} else if hour > 17 && hour < 21 {
+		return "DINNER"
+	} else if hour > 21 {
+		return "LATE_NIGHT"
+	}
+	return "NONE"
 }
