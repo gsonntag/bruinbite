@@ -325,7 +325,7 @@ export default function AddReview() {
         // one review per dish
         const allReviews = Object.entries(reviewData.dishReviews).map(([dishId, review]) => ({
             dish_id: parseInt(dishId),
-            score: review.rating ? parseInt(review.rating)*2 : null,
+            score: review.rating ? parseInt(review.rating) : null,
             comment: review.review || ''
         }));
 
@@ -338,7 +338,7 @@ export default function AddReview() {
                 alert('Please provide a rating for all selected dishes.');
                 return;
             }
-            if (review.score < 1 || review.score > 10) {
+            if (review.score < 1 || review.score > 5) {
                 alert('Rating must be between 1 and 5 stars.');
                 return;
             }
