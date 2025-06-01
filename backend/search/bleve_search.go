@@ -147,7 +147,7 @@ func buildIndexMapping() (mapping.IndexMapping, error) {
 	dishMapping.AddFieldMappingsAt("description", descriptionFieldMapping)
 
 	hallNameFieldMapping := bleve.NewTextFieldMapping()
-	hallNameFieldMapping.Analyzer = keyword.Name
+	hallNameFieldMapping.Analyzer = standard.Name
 	dishMapping.AddFieldMappingsAt("hall_name", hallNameFieldMapping)
 
 	locationFieldMapping := bleve.NewTextFieldMapping()
@@ -192,7 +192,7 @@ func (m *BleveSearchManager) SearchDishes(queryString string, hallFilter string,
 	if queryString == "" {
 		return nil, fmt.Errorf("empty query string")
 	}
-
+	
 	var finalQuery query.Query
 
 	// Create a match query for dish name with fuzzy matching
@@ -206,10 +206,10 @@ func (m *BleveSearchManager) SearchDishes(queryString string, hallFilter string,
 
 	// Combine queries with disjunction (OR)
 	queryDisjunction := bleve.NewDisjunctionQuery(nameQuery, descQuery)
-
-	// If hall filter is provided, add a term query for hall
+	
+	// If hall filter is provided, add a match query for hall
 	if hallFilter != "" {
-		hallQuery := bleve.NewTermQuery(hallFilter)
+		hallQuery := bleve.NewMatchQuery(hallFilter)
 		hallQuery.SetField("hall_name")
 		
 		// Combine with conjunction (AND)
