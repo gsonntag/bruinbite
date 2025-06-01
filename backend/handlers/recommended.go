@@ -51,7 +51,7 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 		var menus []models.Menu
 		if err := mgr.DB.Preload("Dishes").Where(
 			"date_day=? AND date_month=? AND date_year=? AND date_meal_period IN ?",
-			now.Day(), int(now.Month()), now.Year, periods,
+			now.Day(), int(now.Month()), now.Year(), periods,
 		).Find(&menus).Error; err != nil && err != gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

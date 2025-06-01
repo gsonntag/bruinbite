@@ -124,6 +124,7 @@ func RegisterRoutes(router *gin.Engine) {
 
 	// Gets all valid meal periods for a given date
 	router.GET("/recommended",
+		handlers.AuthMiddleware(),
 		handlers.GetRecommendedHallForUser(DBManager))
 
 	// Get all dining halls with their ratings

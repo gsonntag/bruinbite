@@ -78,6 +78,7 @@ func GetHallMealPeriods(mgr *db.DBManager) gin.HandlerFunc {
 		mealPeriods, err := mgr.GetMealPeriodsForDate(query.HallName, date)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 
 		// order lunch before dinner
