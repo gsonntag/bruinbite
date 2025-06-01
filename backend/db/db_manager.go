@@ -349,3 +349,57 @@ func (m *DBManager) GetMealPeriodsForDate(hallName string, date models.Date) ([]
 
 	return periods, nil
 }
+
+// GetAllHallsWithRatings returns all dining halls with their average ratings and review counts
+func (m *DBManager) GetAllHallsWithRatings() ([]map[string]interface{}, error) {
+	var results []map[string]interface{}
+	
+	// Query to get halls with their average ratings and review counts
+	query := `
+		SELECT 
+			dh.id,
+			dh.name,
+			dh.location,
+			COALESCE(AVG(r.score), 0) as average_rating,
+			COUNT(r.id) as review_count
+		FROM dining_halls dh
+		LEFT JOIN dishes d ON dh.id = d.hall_id
+		LEFT JOIN ratings r ON d.id = r.dish_id
+		GROUP BY dh.id, dh.name, dh.location
+		ORDER BY dh.name
+	`
+	
+	rows, err := m.DB.Raw(query).Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	
+	for rows.Next() {
+		var id uint
+		var name string
+		var location *string
+		var avgRating float64
+		var reviewCount int64
+		
+		err := rows.Scan(&id, &name, &location, &avgRating, &reviewCount)
+		if err != nil {
+			return nil, err
+		}
+		
+		// Round average rating to 1 decimal place
+		avgRating = float64(int(avgRating*10)) / 10
+		
+		result := map[string]interface{}{
+			"id":           id,
+			"name":         name,
+			"location":     location,
+			"rating":       avgRating,
+			"reviewCount":  reviewCount,
+		}
+		
+		results = append(results, result)
+	}
+	
+	return results, nil
+}
