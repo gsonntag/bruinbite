@@ -1,6 +1,19 @@
 import { FaStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
 
+const hallApiNameToDisplayName = {
+    "bruin-cafe": "Bruin Café",
+    "bruin-plate": "Bruin Plate",
+    "cafe-1919": "Café 1919",
+    "de-neve-dining": "De Neve",
+    "the-drey": "The Drey",
+    "epicuria-at-covel": "Epicuria",
+    "epicuria-at-ackerman": "Epic at Ackerman",
+    "rendezvous": "Rendezvous",
+    "the-study-at-hedrick": "The Study",
+    "spice-kitchen": "Spice Kitchen at Bruin Bowl"
+};
+
 // Image mapping for dining halls (since images aren't stored in database)
 const diningHallImages = {
     "Bruin Café": "/dining-halls/bcafe.avif",
@@ -39,9 +52,9 @@ export default function DiningHalls() {
                 
                 // Transform the data to match the expected format
                 const transformedHalls = data.dining_halls.map(hall => ({
-                    id: createSlugFromName(hall.name),
-                    name: hall.name,
-                    image: diningHallImages[hall.name] || "/dining-halls/bcafe.avif", // fallback image
+                    id: createSlugFromName(hallApiNameToDisplayName[hall.name] || hall.name),
+                    name: hallApiNameToDisplayName[hall.name] || hall.name,
+                    image: diningHallImages[hallApiNameToDisplayName[hall.name] || hall.name] || "/dining-halls/bcafe.avif", // fallback image
                     rating: hall.rating,
                     reviewCount: hall.reviewCount
                 }));

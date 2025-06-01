@@ -38,7 +38,7 @@ CREATE TABLE ratings (
   id         SERIAL PRIMARY KEY,
   user_id    INT    NOT NULL REFERENCES users(id),
   dish_id    INT    NOT NULL REFERENCES dishes(id),
-  score      SMALLINT NOT NULL CHECK (score >= 0 AND score <= 10),
+  score      SMALLINT NOT NULL CHECK (score >= 0 AND score <= 5),
   comment    TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
