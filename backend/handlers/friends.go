@@ -143,3 +143,20 @@ func DeclineFriendRequestHandler(mgr *db.DBManager) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"message": "Friend request declined successfully"})
 	}
 }
+
+// SearchUsersHandler handles searching for users by username
+func SearchUsersHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username := c.Query("username")
+		if username == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "username query parameter is required"})
+			return
+		}
+		users, err := mgr.GetUsersByUsername(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, users)
+	}
+}

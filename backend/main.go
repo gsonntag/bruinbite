@@ -143,6 +143,10 @@ func RegisterRoutes(router *gin.Engine) {
 	router.POST("/decline-friend-request",
 		handlers.AuthMiddleware(),
 		handlers.DeclineFriendRequestHandler(DBManager))
+
+	// Expecting query params: username
+	router.GET("/search-users",
+		handlers.SearchUsersHandler(DBManager))
 }
 
 func InitializeRouter() error {

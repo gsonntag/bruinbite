@@ -483,9 +483,6 @@ func (m *DBManager) SendFriendRequest(fromID, toID uint) error {
 	if err == nil {
 		// If a request already exists, return an error
 		return errors.New("friend request already exists")
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		// If the error is not "record not found", return the error
-		return fmt.Errorf("could not check for existing friend request: %w", err)
 	}
 
 	if fromID == toID {
@@ -524,4 +521,15 @@ func (m *DBManager) AcceptFriendRequest(requestID uint) error {
 // DeleteFriendRequest deletes a friend request by its ID
 func (m *DBManager) DeleteFriendRequest(requestID uint) error {
 	return m.DB.Delete(&models.FriendRequest{}, requestID).Error
+}
+
+
+// GetUsersByUsername searches for users by their username
+func (m *DBManager) GetUsersByUsername(username string) ([]models.User, error) {
+	var users []models.User
+	err := m.DB.Where("username ILIKE ?", "%"+username+"%").Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
