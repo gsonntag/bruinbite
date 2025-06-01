@@ -115,6 +115,34 @@ func RegisterRoutes(router *gin.Engine) {
 	// Get all dining halls with their ratings
 	router.GET("/dining-halls",
 		handlers.GetAllDiningHallsHandler(DBManager))
+
+	// Register friends routes
+	router.GET("/friends",
+		handlers.AuthMiddleware(),
+		handlers.GetFriendsHandler(DBManager))
+	router.GET("/out-friend-requests",
+		handlers.AuthMiddleware(),
+		handlers.GetOutgoingFriendRequestsHandler(DBManager))
+	router.GET("/in-friend-requests",
+		handlers.AuthMiddleware(),
+		handlers.GetIncomingFriendRequestsHandler(DBManager))
+
+	// Expecting body params: friend_id
+	// e.g. {"friend_id": 2}
+	router.POST("/send-friend-request",
+		handlers.AuthMiddleware(),
+		handlers.SendFriendRequestHandler(DBManager))
+
+	// Expecting body params: request_id
+	// e.g. {"request_id": 1}
+	router.POST("/accept-friend-request",
+		handlers.AuthMiddleware(),
+		handlers.AcceptFriendRequestHandler(DBManager))
+
+	// Expecting body params: request_id
+	router.POST("/decline-friend-request",
+		handlers.AuthMiddleware(),
+		handlers.DeclineFriendRequestHandler(DBManager))
 }
 
 func InitializeRouter() error {

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -32,6 +33,8 @@ func (m *DBManager) Migrate() error {
 		&models.Dish{},
 		&models.Menu{},
 		&models.Rating{},
+		&models.Friendship{},
+		&models.FriendRequest{},
 	)
 }
 
@@ -279,7 +282,6 @@ func (m *DBManager) GetMenuByHallIDAndDate(hallID uint, date models.Date) (*mode
 	return &menu, nil
 }
 
-
 // GetAllRatingsByUserID retrieves all ratings made by a user
 // preload dish and user info
 func (m *DBManager) GetAllRatingsByUserID(userID uint) ([]models.Rating, error) {
@@ -353,7 +355,7 @@ func (m *DBManager) GetMealPeriodsForDate(hallName string, date models.Date) ([]
 // GetAllHallsWithRatings returns all dining halls with their average ratings and review counts
 func (m *DBManager) GetAllHallsWithRatings() ([]map[string]interface{}, error) {
 	var results []map[string]interface{}
-	
+
 	// Query to get halls with their average ratings and review counts
 	query := `
 		SELECT 
@@ -368,38 +370,158 @@ func (m *DBManager) GetAllHallsWithRatings() ([]map[string]interface{}, error) {
 		GROUP BY dh.id, dh.name, dh.location
 		ORDER BY dh.name
 	`
-	
+
 	rows, err := m.DB.Raw(query).Rows()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var id uint
 		var name string
 		var location *string
 		var avgRating float64
 		var reviewCount int64
-		
+
 		err := rows.Scan(&id, &name, &location, &avgRating, &reviewCount)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Round average rating to 1 decimal place
 		avgRating = float64(int(avgRating*10)) / 10
-		
+
 		result := map[string]interface{}{
-			"id":           id,
-			"name":         name,
-			"location":     location,
-			"rating":       avgRating,
-			"reviewCount":  reviewCount,
+			"id":          id,
+			"name":        name,
+			"location":    location,
+			"rating":      avgRating,
+			"reviewCount": reviewCount,
 		}
-		
+
 		results = append(results, result)
 	}
-	
+
 	return results, nil
+}
+
+// GetFriendsByUserID retrieves all friends of a user
+func (m *DBManager) GetFriendsByUserID(userID uint) ([]models.User, error) {
+	var friends []models.User
+
+	// Since friendships are stored with the lower ID first,
+	// we need to query for both cases where the user could be either UserID or FriendID
+	err := m.DB.Raw(`
+		SELECT DISTINCT u.* FROM users u
+		JOIN friendships f ON (
+			(f.user_id = ? AND f.friend_id = u.id) OR
+			(f.friend_id = ? AND f.user_id = u.id)
+		)
+		WHERE u.id != ?
+	`, userID, userID, userID).Scan(&friends).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return friends, nil
+}
+
+// GetOutgoingFriendRequestsByUserID retrieves all outgoing friend requests for a user
+// gets the full user objects for the requests
+func (m *DBManager) GetOutgoingFriendRequestsByUserID(userID uint) ([]models.FriendRequest, error) {
+	var requests []models.FriendRequest
+
+	// Use Preload to get the user information for the recipient of each request
+	err := m.DB.Preload("ToUser").
+		Where("from_id = ?", userID).
+		Find(&requests).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return requests, nil
+}
+
+// GetIncomingFriendRequestsByUserID retrieves all incoming friend requests for a user
+func (m *DBManager) GetIncomingFriendRequestsByUserID(userID uint) ([]models.FriendRequest, error) {
+	var requests []models.FriendRequest
+	err := m.DB.Preload("FromUser").
+		Where("to_id = ?", userID).
+		Find(&requests).Error
+	if err != nil {
+		return nil, err
+	}
+	return requests, nil
+}
+
+// CreateFriendship creates a new friendship between two users
+func (m *DBManager) CreateFriendship(userID, friendID uint) error {
+	// Create a new friendship record, put lower ID first to avoid duplicates
+	if userID > friendID {
+		userID, friendID = friendID, userID
+	}
+	friendship := models.Friendship{
+		UserID:   userID,
+		FriendID: friendID,
+	}
+	return m.DB.Create(&friendship).Error
+}
+
+// SendFriendRequest sends a friend request from one user to another
+func (m *DBManager) SendFriendRequest(fromID, toID uint) error {
+	// Check if the friend request already exists
+	var existingRequest models.FriendRequest
+
+	// Check if a request already exists from fromID to toID
+	// and from toID to fromID (to avoid duplicates in both directions)
+	err := m.DB.Where("(from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)",
+		fromID, toID, toID, fromID).
+		First(&existingRequest).Error
+	if err == nil {
+		// If a request already exists, return an error
+		return errors.New("friend request already exists")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		// If the error is not "record not found", return the error
+		return fmt.Errorf("could not check for existing friend request: %w", err)
+	}
+
+	if fromID == toID {
+		return errors.New("cannot send a friend request to yourself")
+	}
+
+	request := models.FriendRequest{
+		FromID: fromID,
+		ToID:   toID,
+		Status: "pending",
+	}
+	return m.DB.Create(&request).Error
+}
+
+// AcceptFriendRequest accepts a friend request
+func (m *DBManager) AcceptFriendRequest(requestID uint) error {
+	// get the request to find out who sent it
+	var request models.FriendRequest
+	if err := m.DB.First(&request, requestID).Error; err != nil {
+		return fmt.Errorf("could not find friend request: %w", err)
+	}
+
+	// create a friendship between the two users
+	if err := m.CreateFriendship(request.ToID, request.FromID); err != nil {
+		return fmt.Errorf("could not create friendship: %w", err)
+	}
+
+	// delete the friend request
+	if err := m.DB.Delete(&models.FriendRequest{}, requestID).Error; err != nil {
+		return fmt.Errorf("could not delete friend request: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteFriendRequest deletes a friend request by its ID
+func (m *DBManager) DeleteFriendRequest(requestID uint) error {
+	return m.DB.Delete(&models.FriendRequest{}, requestID).Error
 }

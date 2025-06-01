@@ -66,6 +66,27 @@ type User struct {
 	Email          string   `gorm:"type:text;unique;not null" json:"email"`
 	IsAdmin        bool     `gorm:"not null;default:false" json:"is_admin"`
 	Ratings        []Rating `gorm:"foreignKey:UserID" json:"ratings,omitempty"`
+	FriendRequestsSent []FriendRequest `gorm:"foreignKey:FromID" json:"friend_requests_sent,omitempty"` // requests sent by this user
+	FriendRequestsReceived []FriendRequest `gorm:"foreignKey:ToID" json:"friend_requests_received,omitempty"` // requests received by this user
+}
+
+// Friendship represents a friendship between two users
+type Friendship struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID    uint      `gorm:"not null;index" json:"user_id"`   // the user who sent the friend request
+	FriendID  uint      `gorm:"not null;index" json:"friend_id"` // the user who received the friend request
+	CreatedAt time.Time `gorm:"type:timestamp with time zone;not null;default:now()" json:"created_at"`
+}
+
+// FriendRequest represents a friend request sent from one user to another
+type FriendRequest struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	FromID    uint      `gorm:"not null;index" json:"from_id"` // the user who sent the friend request
+	ToID      uint      `gorm:"not null;index" json:"to_id"`   // the user who received the friend request
+	CreatedAt time.Time `gorm:"type:timestamp with time zone;not null;default:now()" json:"created_at"`
+	Status    string    `gorm:"type:text;not null;default:'pending'" json:"status"` // e.g. "pending", "accepted", "declined"
+	FromUser  User      `gorm:"foreignKey:FromID" json:"from_user,omitempty"`       // the user who sent the request
+	ToUser    User      `gorm:"foreignKey:ToID" json:"to_user,omitempty"`           // the user who received the request
 }
 
 type DiningHall struct {
