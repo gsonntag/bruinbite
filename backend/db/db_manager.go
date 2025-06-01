@@ -523,7 +523,6 @@ func (m *DBManager) DeleteFriendRequest(requestID uint) error {
 	return m.DB.Delete(&models.FriendRequest{}, requestID).Error
 }
 
-
 // GetUsersByUsername searches for users by their username
 func (m *DBManager) GetUsersByUsername(username string) ([]models.User, error) {
 	var users []models.User
@@ -532,4 +531,14 @@ func (m *DBManager) GetUsersByUsername(username string) ([]models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// GetHallByID retrieves a dining hall by its ID
+func (m *DBManager) GetHallByID(hallID uint) (*models.DiningHall, error) {
+	var hall models.DiningHall
+	err := m.DB.First(&hall, hallID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &hall, nil
 }

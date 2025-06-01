@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/gsonntag/bruinbite/db"
 	"github.com/gsonntag/bruinbite/handlers"
 	"github.com/gsonntag/bruinbite/ingest"
+	"github.com/gsonntag/bruinbite/search"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -20,7 +22,11 @@ import (
 
 const Port = 8080
 
-var DBManager *db.DBManager
+var (
+	DBManager    *db.DBManager
+	SearchManager *search.BleveSearchManager
+	Indexer      *search.Indexer
+)
 
 func InitializeDatabase() error {
 	dbHost := os.Getenv("POSTGRES_HOST")
@@ -76,9 +82,17 @@ func RegisterRoutes(router *gin.Engine) {
 		handlers.AuthMiddleware(),
 		handlers.GetAllHallDishesHandler(DBManager))
 
-	// Search route
-	router.GET("/search",
+	// Legacy search route (SQL-based)
+	router.GET("/sql-search",
 		handlers.DishesSearchHandler(DBManager))
+		
+	// Bleve search route (for enhanced search with fuzzy matching, etc.)
+	router.GET("/search",
+		handlers.BleveSearchHandler(DBManager, SearchManager))
+		
+	// Admin endpoint to manually trigger reindexing
+	router.POST("/admin/reindex",
+		handlers.ReindexHandler(Indexer))
 
 	// Register ratings route
 	// expecting body params: dish_id, rating, comment (optional)
@@ -161,7 +175,35 @@ func InitializeRouter() error {
 	return nil
 }
 
+// InitializeSearch initializes the Bleve search system
+func InitializeSearch(forceReindex bool) error {
+	// Initialize Bleve search manager
+	var err error
+	SearchManager, err = search.NewBleveSearchManager(forceReindex)
+	if err != nil {
+		return fmt.Errorf("failed to initialize search manager: %w", err)
+	}
+
+	// Initialize indexer
+	Indexer = search.NewIndexer(DBManager, SearchManager, 100)
+
+	// If forceReindex is true, rebuild the index
+	if forceReindex {
+		log.Println("Rebuilding search index...")
+		if err := Indexer.IndexAllDishes(); err != nil {
+			return fmt.Errorf("failed to index dishes: %w", err)
+		}
+		log.Println("Search index rebuild complete")
+	}
+
+	return nil
+}
+
 func main() {
+	// Parse command line flags
+	reindexFlag := flag.Bool("reindex", false, "Rebuild the search index")
+	flag.Parse()
+
 	// Load go dot env
 	if err := godotenv.Load("db.env"); err != nil {
 		log.Fatalln("db.env file not found, exiting")
@@ -174,9 +216,18 @@ func main() {
 		return
 	}
 
+	// Initialize search system
+	forceReindex := *reindexFlag
+	err = InitializeSearch(forceReindex)
+	if err != nil {
+		log.Fatalln("Failed to initialize search system", err)
+		return
+	}
+
+	// Fetch and ingest data if needed
 	err = ingest.FetchAndIngest(DBManager)
 	if err != nil {
-		fmt.Printf("%w\n", err)
+		fmt.Printf("%v\n", err)
 	}
 
 	err = InitializeRouter()
