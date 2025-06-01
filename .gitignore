@@ -19,7 +19,6 @@
 
 # production
 /build
-/backend/db.env
 
 # misc
 .DS_Store
@@ -33,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+backend/db.env*
+backend/db.env
+*.env*
 
 # vercel
 .vercel
@@ -40,4 +42,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-backend/db.env
+
+# Python virtual environments
+backend/scraper/.venv/
+backend/venv/
+backend/.venv/
+.venv/
+venv/
+env/
+
+# Bleve search index files
+backend/bleve_index/
+
+# Go build artifacts
+backend/main
+backend/*.exe
