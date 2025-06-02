@@ -39,11 +39,11 @@ func DishToDocument(dish models.Dish, hallName string) DishDocument {
 	// Default description, location if empty
 	description := "No description available"
 	location := "Unknown"
-	
+
 	if dish.Description != nil && *dish.Description != "" {
 		description = *dish.Description
 	}
-	
+
 	if dish.Location != nil && *dish.Location != "" {
 		location = *dish.Location
 	}
@@ -191,7 +191,7 @@ func (m *BleveSearchManager) SearchDishes(queryString string, hallFilter string,
 	if queryString == "" {
 		return nil, fmt.Errorf("empty query string")
 	}
-	
+
 	var finalQuery query.Query
 
 	// Create a match query for dish name with fuzzy matching
@@ -205,12 +205,12 @@ func (m *BleveSearchManager) SearchDishes(queryString string, hallFilter string,
 
 	// Combine queries with disjunction (OR)
 	queryDisjunction := bleve.NewDisjunctionQuery(nameQuery, descQuery)
-	
+
 	// If hall filter is provided, add a match query for hall
 	if hallFilter != "" {
 		hallQuery := bleve.NewMatchQuery(hallFilter)
 		hallQuery.SetField("hall_name")
-		
+
 		// Combine with conjunction (AND)
 		finalQuery = bleve.NewConjunctionQuery(queryDisjunction, hallQuery)
 	} else {
@@ -221,7 +221,7 @@ func (m *BleveSearchManager) SearchDishes(queryString string, hallFilter string,
 	searchRequest := bleve.NewSearchRequest(finalQuery)
 	searchRequest.Size = limit
 	searchRequest.Fields = []string{"*"} // Retrieve all fields
-	
+
 	// Sort by relevance (default)
 	searchRequest.SortBy([]string{"-_score"})
 
@@ -235,30 +235,30 @@ func (m *BleveSearchManager) SearchDishes(queryString string, hallFilter string,
 	dishes := make([]DishDocument, 0, len(searchResults.Hits))
 	for _, hit := range searchResults.Hits {
 		var dish DishDocument
-		
+
 		// Extract fields
 		dish.ID = hit.ID
-		
+
 		if name, ok := hit.Fields["name"].(string); ok {
 			dish.Name = name
 		}
-		
+
 		if description, ok := hit.Fields["description"].(string); ok {
 			dish.Description = description
 		}
-		
+
 		if hallID, ok := hit.Fields["hall_id"].(float64); ok {
 			dish.HallID = uint(hallID)
 		}
-		
+
 		if hallName, ok := hit.Fields["hall_name"].(string); ok {
 			dish.HallName = hallName
 		}
-		
+
 		if location, ok := hit.Fields["location"].(string); ok {
 			dish.Location = location
 		}
-		
+
 		dishes = append(dishes, dish)
 	}
 
@@ -276,24 +276,24 @@ func (m *BleveSearchManager) ReindexAll(docs []DishDocument) error {
 	if err := m.index.Close(); err != nil {
 		return err
 	}
-	
+
 	if err := os.RemoveAll(IndexPath); err != nil {
 		return err
 	}
-	
+
 	// Create new index
 	indexMapping, err := buildIndexMapping()
 	if err != nil {
 		return err
 	}
-	
+
 	index, err := bleve.New(IndexPath, indexMapping)
 	if err != nil {
 		return err
 	}
-	
+
 	m.index = index
-	
+
 	// Batch index all documents
 	return m.BatchIndexDishes(docs)
 }
@@ -307,7 +307,7 @@ func (m *BleveSearchManager) UpdateDish(doc DishDocument) error {
 			return err
 		}
 	}
-	
+
 	return m.index.Index(doc.ID, doc)
 }
 
