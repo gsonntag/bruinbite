@@ -92,11 +92,13 @@ func GetHallMealPeriods(mgr *db.DBManager) gin.HandlerFunc {
 
 		// internally, drey, rende, bcafe, epic ackerman all use breakfast for all periods
 		// so if it is one of these, we return "Lunch & Dinner" or "All Day" for Bcafe
-		allPeriodsBreakfast := []string{"the-drey", "rendezvous", "epicuria-at-ackerman"}
-		if query.HallName == "bruin-cafe" {
-			mealPeriods = []string{"ALL_DAY"}
-		} else if slices.Contains(allPeriodsBreakfast, query.HallName) {
-			mealPeriods = []string{"LUNCH_DINNER"}
+		if len(mealPeriods) > 0 {
+			allPeriodsBreakfast := []string{"the-drey", "rendezvous", "epicuria-at-ackerman"}
+			if query.HallName == "bruin-cafe" {
+				mealPeriods = []string{"ALL_DAY"}
+			} else if slices.Contains(allPeriodsBreakfast, query.HallName) {
+				mealPeriods = []string{"LUNCH_DINNER"}
+			}
 		}
 
 		c.JSON(http.StatusOK, gin.H{

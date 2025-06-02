@@ -232,7 +232,7 @@ func main() {
 	// Fetch and ingest data if needed
 	err = ingest.FetchAndIngest(DBManager)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Printf("ERR WITH SCRAPER: %v\n", err)
 	}
 
 	err = InitializeRouter()

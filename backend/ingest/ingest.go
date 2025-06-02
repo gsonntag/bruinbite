@@ -24,7 +24,8 @@ func GetToday() (*models.Date, error) {
 	}
 
 	now := time.Now().In(loc)
-	date := models.Date{Day: now.Day(), Month: int(now.Month()), Year: now.Year()}
+	dinner := "DINNER"
+	date := models.Date{Day: now.Day(), Month: int(now.Month()), Year: now.Year(), MealPeriod: &dinner}
 	return &date, nil
 }
 

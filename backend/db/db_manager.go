@@ -58,6 +58,7 @@ func (m *DBManager) HasScraperLoaded(date models.Date) (bool, error) {
 // Should only be called when the scraper has fully
 // ran successfully for a given meal period.
 func (m *DBManager) SetScraperLastRan(date models.Date) error {
+	*date.MealPeriod = "DINNER"
 	var tracker models.UpdateTracker
 	result := m.DB.Where("key = ?", "scraper").Find(&tracker)
 	if result.Error != nil {
@@ -129,7 +130,7 @@ func (m *DBManager) GetOrCreateDishByName(name string, hallId uint, location str
 	result := m.DB.
 		Where("hall_id = ? AND name = ?", hallId, name).
 		Attrs(models.Dish{
-			Location: &location,
+			Location:     &location,
 			LastSeenDate: today,
 		}).
 		FirstOrCreate(&queryDish)
@@ -142,7 +143,7 @@ func (m *DBManager) GetOrCreateDishByName(name string, hallId uint, location str
 	if result.RowsAffected == 0 {
 		if err := m.DB.
 			Model(&queryDish).
-			Update("last_seen_date", today).
+			Updates(models.Dish{LastSeenDate: today}).
 			Error; err != nil {
 			return models.Dish{}, err
 		}
