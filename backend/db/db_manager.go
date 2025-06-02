@@ -533,6 +533,16 @@ func (m *DBManager) GetUsersByUsername(username string) ([]models.User, error) {
 	return users, nil
 }
 
+// GetAllUsers retrieves all users (used for indexing)
+func (m *DBManager) GetAllUsers() ([]models.User, error) {
+	var users []models.User
+	err := m.DB.Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 // GetHallByID retrieves a dining hall by its ID
 func (m *DBManager) GetHallByID(hallID uint) (*models.DiningHall, error) {
 	var hall models.DiningHall

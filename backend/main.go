@@ -23,9 +23,10 @@ import (
 const Port = 8080
 
 var (
-	DBManager     *db.DBManager
-	SearchManager *search.BleveSearchManager
-	Indexer       *search.Indexer
+	DBManager         *db.DBManager
+	SearchManager     *search.BleveSearchManager
+	UserSearchManager *search.BleveUserSearchManager
+	Indexer           *search.Indexer
 )
 
 func InitializeDatabase() error {
@@ -163,8 +164,14 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/dish/:id",
 		handlers.GetDishDetailsHandler(DBManager))
 
-	// Expecting query params: username
+	// Enhanced user search with fuzzy matching and partial search (Bleve-based)
 	router.GET("/search-users",
+		handlers.AuthMiddleware(),
+		handlers.BleveSearchUsersHandler(DBManager, UserSearchManager))
+
+	// Legacy user search (SQL-based) - keeping as fallback
+	router.GET("/sql-search-users",
+		handlers.AuthMiddleware(),
 		handlers.SearchUsersHandler(DBManager))
 }
 
@@ -182,25 +189,62 @@ func InitializeRouter() error {
 
 // InitializeSearch initializes the Bleve search system
 func InitializeSearch(forceReindex bool) error {
-	// Initialize Bleve search manager
+	// Initialize Bleve search manager for dishes
 	var err error
 	SearchManager, err = search.NewBleveSearchManager(forceReindex)
 	if err != nil {
 		return fmt.Errorf("failed to initialize search manager: %w", err)
 	}
 
-	// Initialize indexer
+	// Initialize Bleve search manager for users
+	UserSearchManager, err = search.NewBleveUserSearchManager(forceReindex)
+	if err != nil {
+		return fmt.Errorf("failed to initialize user search manager: %w", err)
+	}
+
+	// Initialize indexer for dishes
 	Indexer = search.NewIndexer(DBManager, SearchManager, 100)
 
-	// If forceReindex is true, rebuild the index
+	// If forceReindex is true, rebuild the indices
 	if forceReindex {
-		log.Println("Rebuilding search index...")
+		log.Println("Rebuilding search indices...")
+
+		// Index dishes
 		if err := Indexer.IndexAllDishes(); err != nil {
 			return fmt.Errorf("failed to index dishes: %w", err)
 		}
-		log.Println("Search index rebuild complete")
+
+		// Index users
+		if err := IndexAllUsers(); err != nil {
+			return fmt.Errorf("failed to index users: %w", err)
+		}
+
+		log.Println("Search indices rebuild complete")
 	}
 
+	return nil
+}
+
+// IndexAllUsers indexes all users in the user search index
+func IndexAllUsers() error {
+	// Get all users from database
+	users, err := DBManager.GetAllUsers()
+	if err != nil {
+		return fmt.Errorf("failed to get users from database: %w", err)
+	}
+
+	// Convert to user documents
+	var userDocs []search.UserDocument
+	for _, user := range users {
+		userDocs = append(userDocs, search.UserToDocument(user))
+	}
+
+	// Batch index all users
+	if err := UserSearchManager.BatchIndexUsers(userDocs); err != nil {
+		return fmt.Errorf("failed to batch index users: %w", err)
+	}
+
+	log.Printf("Indexed %d users", len(userDocs))
 	return nil
 }
 
