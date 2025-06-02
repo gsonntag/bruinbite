@@ -321,7 +321,9 @@ export default function Profile() {
                                     <p className="text-sm text-gray-500">{friend.email}</p>
                                 </div>
                             </div>
-                            <button className="text-[#0d92db] hover:text-blue-600 text-sm font-medium">
+                            <button className="text-[#0d92db] hover:text-blue-600 text-sm font-medium"
+                                onClick={() => router.push(`/profile/${friend.username}`)}
+                            >
                                 View Profile
                             </button>
                         </div>

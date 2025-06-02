@@ -74,11 +74,15 @@ export default function Navbar() {
                     </Link>
                     <div className="flex items-center gap-4">
                         {isLoggedIn && pathname !== '/add-review' && (
-                            <Link href="/add-review">
+                            <><Link href="/add-review">
                                 <button className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300">
                                     Add a Review
                                 </button>
-                            </Link>
+                            </Link><Link href="/feed">
+                                    <button className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300">
+                                        Feed
+                                    </button>
+                                </Link></>
                         )}
                         <Link href="/menus">
                             <button className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300">
