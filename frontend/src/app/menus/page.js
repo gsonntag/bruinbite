@@ -80,9 +80,20 @@ export default function Menus() {
     const router = useRouter();
     const today = new Date();
     
+    const getInitialHall = () => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hallParam = urlParams.get('hall');
+            if (hallParam && Object.keys(hallApiNameToFormName).includes(hallParam)) {
+                return hallParam;
+            }
+        }
+        return 'de-neve-dining'; // default
+    };
+    
     // Current search parameters (used for display)
     const [currentSearch, setCurrentSearch] = useState({
-        hallName: 'de-neve-dining',
+        hallName: getInitialHall(),
         mealPeriod: getCurrentMealPeriod(),
         date: {
             month: today.getMonth() + 1,
@@ -95,7 +106,7 @@ export default function Menus() {
     
     // Form values
     const [formValues, setFormValues] = useState({
-        hallName: 'de-neve-dining',
+        hallName: getInitialHall(),
         mealPeriod: getCurrentMealPeriod(),
         date: {
             month: today.getMonth() + 1,
@@ -140,7 +151,7 @@ export default function Menus() {
     useEffect(() => {
         const initializeMenu = async () => {
             const today = new Date();
-            const initialHallName = 'de-neve-dining';
+            const initialHallName = getInitialHall();
             const initialDate = {
                 month: today.getMonth() + 1,
                 day: today.getDate(),

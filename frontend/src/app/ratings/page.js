@@ -84,7 +84,7 @@ export default function Ratings() {
                                         <h2 className="text-xl font-semibold text-gray-800 leading-tight">{rating.dish.name}</h2>
                                         <div className="flex items-center bg-blue-50 px-2 py-1 rounded-md ml-3 flex-shrink-0">
                                             <span className="text-yellow-500 mr-1">★</span>
-                                            <span className="text-sm font-medium text-blue-700">{rating.score}/10</span>
+                                            <span className="text-sm font-medium text-blue-700">{rating.score}/5</span>
                                         </div>
                                     </div>
                                     

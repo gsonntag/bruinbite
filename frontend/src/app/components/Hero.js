@@ -12,12 +12,31 @@ export default function Hero() {
     // Dining hall options for the filter dropdown
     const diningHalls = [
         { value: "", label: "All Dining Halls" },
-        { value: "cafe", label: "Bruin Café" },
-        { value: "plate", label: "Bruin Plate" },
-        { value: "neve", label: "De Neve" },
+        { value: "bcafe", label: "Bruin Café" },
+        { value: "bplate", label: "Bruin Plate" },
+        { value: "cafe1919", label: "Café 1919" },
+        { value: "deneve", label: "De Neve" },
         { value: "epicuria", label: "Epicuria at Covel" },
-        { value: "rendezvous", label: "Rendezvous" }
+        { value: "epicuriaa", label: "Epic at Ackerman" },
+        { value: "rendezvous", label: "Rendezvous" },
+        { value: "thedrey", label: "The Drey" },
+        { value: "thestudy", label: "The Study" },
+        { value: "spicekitchen", label: "Spice Kitchen" }
     ];
+
+    // Mapping from dropdown values to actual database hall names
+    const hallValueToApiName = {
+        "bcafe": "bruin-cafe",
+        "bplate": "bruin-plate", 
+        "cafe1919": "cafe-1919",
+        "deneve": "de-neve-dining",
+        "epicuria": "epicuria-at-covel",
+        "epicuriaa": "epicuria-at-ackerman",
+        "rendezvous": "rendezvous",
+        "thedrey": "the-drey",
+        "thestudy": "the-study-at-hedrick",
+        "spicekitchen": "spice-kitchen"
+    };
 
     useEffect(() => {
         const searchDishes = async () => {
@@ -30,7 +49,11 @@ export default function Hero() {
                 // Build search URL with optional hall filter
                 let searchUrl = `http://localhost:8080/search?keyword=${encodeURIComponent(query)}`;
                 if (selectedHall) {
-                    searchUrl += `&hall=${encodeURIComponent(selectedHall)}`;
+                    // Map the selected hall value to the actual database hall name
+                    const actualHallName = hallValueToApiName[selectedHall];
+                    if (actualHallName) {
+                        searchUrl += `&hall=${encodeURIComponent(actualHallName)}`;
+                    }
                 }
                 
                 const response = await fetch(searchUrl);
@@ -38,7 +61,6 @@ export default function Hero() {
                     throw new Error("search failed");
                 }
                 const data = await response.json();
-                console.log(data);                
                 setDishes(data.dishes);
             } catch (error) {
                 console.error("error: ", error);

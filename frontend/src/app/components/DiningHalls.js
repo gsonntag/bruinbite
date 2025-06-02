@@ -1,5 +1,6 @@
 import { FaStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 
 const hallApiNameToDisplayName = {
     "bruin-cafe": "Bruin Café",
@@ -13,6 +14,10 @@ const hallApiNameToDisplayName = {
     "the-study-at-hedrick": "The Study",
     "spice-kitchen": "Spice Kitchen at Bruin Bowl"
 };
+
+const displayNameToApiName = Object.fromEntries(
+    Object.entries(hallApiNameToDisplayName).map(([api, display]) => [display, api])
+);
 
 // Image mapping for dining halls (since images aren't stored in database)
 const diningHallImages = {
@@ -39,6 +44,19 @@ export default function DiningHalls() {
     const [diningHalls, setDiningHalls] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const router = useRouter();
+
+    const handleDiningHallClick = (hall) => {
+        const apiName = displayNameToApiName[hall.name];
+        if (apiName) {
+            const params = new URLSearchParams({
+                hall: apiName
+            });
+            router.push(`/menus?${params.toString()}`);
+        } else {
+            router.push('/menus');
+        }
+    };
 
     // Fetch dining halls data from API
     useEffect(() => {
@@ -118,14 +136,15 @@ export default function DiningHalls() {
                             Featured Dining Halls
                         </h2>
                         <p className="text-gray-500 text-left text-lg">
-                            Check out reviews for specific menu items in each Dining Hall
+                            Click on any dining hall to view its current menu and reviews
                         </p>
                     </div>
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
                         {diningHalls.map((hall) => (
                             <div
                                 key={hall.id}
-                                className="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden h-full"
+                                className="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden h-full cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-200"
+                                onClick={() => handleDiningHallClick(hall)}
                             >
                                 <div className="md:w-48 h-48 md:h-auto">
                                     <img
@@ -141,6 +160,7 @@ export default function DiningHalls() {
                                         <span>{hall.rating}</span>
                                         <span className="ml-2 text-gray-500">({hall.reviewCount} reviews)</span>
                                     </div>
+                                    <p className="text-xs text-blue-600 mt-2 font-medium">Click to view menu</p>
                                 </div>
                             </div>
                         ))}
