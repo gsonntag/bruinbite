@@ -179,20 +179,27 @@ func BleveSearchUsersHandler(mgr *db.DBManager, userSearchManager *search.BleveU
 			return
 		}
 
-		// Search using Bleve with fuzzy matching
-		userDocs, err := userSearchManager.SearchUsers(username, uint(userIdInt), 20) // Limit to 20 results
+		// Search using Bleve with fuzzy matching (get more results than needed for filtering)
+		userDocs, err := userSearchManager.SearchUsers(username, uint(userIdInt), 30) // Get extra results
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "search error"})
 			return
 		}
 
-		// Convert UserDocuments back to User models for consistency with frontend
+		// Convert UserDocuments back to User models and filter out current user
 		var users []map[string]interface{}
+		currentUserID := uint(userIdInt)
+
 		for _, doc := range userDocs {
 			// Parse user ID back to uint
 			userID, err := strconv.ParseUint(doc.ID, 10, 32)
 			if err != nil {
 				continue // Skip invalid IDs
+			}
+
+			// Skip current user - this is the critical filter
+			if uint(userID) == currentUserID {
+				continue
 			}
 
 			user := map[string]interface{}{
@@ -205,6 +212,11 @@ func BleveSearchUsersHandler(mgr *db.DBManager, userSearchManager *search.BleveU
 				"is_admin":  false,
 			}
 			users = append(users, user)
+
+			// Limit results to 20 after filtering
+			if len(users) >= 20 {
+				break
+			}
 		}
 
 		c.JSON(http.StatusOK, users)

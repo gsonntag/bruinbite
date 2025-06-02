@@ -13,7 +13,6 @@ import (
 	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
 	"github.com/blevesearch/bleve/v2/analysis/tokenizer/unicode"
 	"github.com/blevesearch/bleve/v2/mapping"
-	"github.com/blevesearch/bleve/v2/search/query"
 
 	"github.com/gsonntag/bruinbite/models"
 )
@@ -108,6 +107,10 @@ func buildUserIndexMapping() (mapping.IndexMapping, error) {
 	userMapping := bleve.NewDocumentMapping()
 
 	// Field mappings
+	// ID field - use keyword field for exact matching (needed for user exclusion)
+	idFieldMapping := bleve.NewKeywordFieldMapping()
+	userMapping.AddFieldMappingsAt("id", idFieldMapping)
+
 	usernameFieldMapping := bleve.NewTextFieldMapping()
 	usernameFieldMapping.Analyzer = "username_analyzer"
 	userMapping.AddFieldMappingsAt("username", usernameFieldMapping)
@@ -155,8 +158,6 @@ func (m *BleveUserSearchManager) SearchUsers(queryString string, currentUserID u
 		return nil, fmt.Errorf("empty query string")
 	}
 
-	var finalQuery query.Query
-
 	// Create a prefix query for better partial matching
 	prefixQuery := bleve.NewPrefixQuery(strings.ToLower(queryString))
 	prefixQuery.SetField("username")
@@ -185,20 +186,8 @@ func (m *BleveUserSearchManager) SearchUsers(queryString string, currentUserID u
 	boolQuery.AddShould(wildcardQuery)
 	wildcardQuery.SetBoost(1.0)
 
-	finalQuery = boolQuery
-
-	// Exclude current user from results
-	mustNotQuery := bleve.NewTermQuery(fmt.Sprintf("%d", currentUserID))
-	mustNotQuery.SetField("id")
-
-	excludeCurrentUserQuery := bleve.NewBooleanQuery()
-	excludeCurrentUserQuery.AddMust(finalQuery)
-	excludeCurrentUserQuery.AddMustNot(mustNotQuery)
-
-	finalQuery = excludeCurrentUserQuery
-
 	// Create search request
-	searchRequest := bleve.NewSearchRequest(finalQuery)
+	searchRequest := bleve.NewSearchRequest(boolQuery)
 	searchRequest.Size = limit
 	searchRequest.Fields = []string{"id", "username", "email", "created_at"}
 
