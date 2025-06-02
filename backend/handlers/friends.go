@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gsonntag/bruinbite/db"
+	"github.com/gsonntag/bruinbite/search"
 )
 
 func GetFriendsHandler(mgr *db.DBManager) gin.HandlerFunc {
@@ -112,7 +113,7 @@ func AcceptFriendRequestHandler(mgr *db.DBManager) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		
+
 		err := mgr.AcceptFriendRequest(request.RequestID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to accept friend request"})
@@ -157,6 +158,55 @@ func SearchUsersHandler(mgr *db.DBManager) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		c.JSON(http.StatusOK, users)
+	}
+}
+
+// BleveSearchUsersHandler handles searching for users using Bleve search with fuzzy matching
+func BleveSearchUsersHandler(mgr *db.DBManager, userSearchManager *search.BleveUserSearchManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username := c.Query("username")
+		if username == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "username query parameter is required"})
+			return
+		}
+
+		// Get current user ID to exclude from search results
+		userIdStr := c.GetString("userId")
+		userIdInt, err := strconv.Atoi(userIdStr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
+			return
+		}
+
+		// Search using Bleve with fuzzy matching
+		userDocs, err := userSearchManager.SearchUsers(username, uint(userIdInt), 20) // Limit to 20 results
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "search error"})
+			return
+		}
+
+		// Convert UserDocuments back to User models for consistency with frontend
+		var users []map[string]interface{}
+		for _, doc := range userDocs {
+			// Parse user ID back to uint
+			userID, err := strconv.ParseUint(doc.ID, 10, 32)
+			if err != nil {
+				continue // Skip invalid IDs
+			}
+
+			user := map[string]interface{}{
+				"ID":        uint(userID),
+				"username":  doc.Username,
+				"email":     doc.Email,
+				"CreatedAt": doc.CreatedAt,
+				"UpdatedAt": doc.CreatedAt, // Use CreatedAt as UpdatedAt for simplicity
+				"DeletedAt": nil,
+				"is_admin":  false,
+			}
+			users = append(users, user)
+		}
+
 		c.JSON(http.StatusOK, users)
 	}
 }
