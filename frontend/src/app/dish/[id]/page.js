@@ -21,16 +21,19 @@ export default function DishDetail() {
                     fetch(`http://localhost:8080/dish/${dishId}`)
                 ]);
                 
-                if (!ratingsResponse.ok || !dishResponse.ok) {
+                if (!dishResponse.ok) {
                     throw new Error('error when fetching dish data');
                 }
                 
-                const ratingsData = await ratingsResponse.json();
                 const dishData = await dishResponse.json();
-                
-
-                setDishRatings(ratingsData);
                 setDishInfo(dishData.dish);
+                
+                if (ratingsResponse.ok) {
+                    const ratingsData = await ratingsResponse.json();
+                    setDishRatings(ratingsData);
+                } else {
+                    setDishRatings([]);
+                }
                 
             } catch (err) {
                 console.log(err);
