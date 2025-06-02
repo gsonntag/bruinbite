@@ -128,10 +128,11 @@ func (m *DBManager) GetOrCreateDishByName(name string, hallId uint, location str
 	// within the hall and last seen date accordingly
 	result := m.DB.
 		Where("hall_id = ? AND name = ?", hallId, name).
-		FirstOrCreate(&queryDish, models.Dish{
-			Location:     &location,
+		Attrs(models.Dish{
+			Location: &location,
 			LastSeenDate: today,
-		})
+		}).
+		FirstOrCreate(&queryDish)
 
 	if err := result.Error; err != nil {
 		return models.Dish{}, err
@@ -139,11 +140,9 @@ func (m *DBManager) GetOrCreateDishByName(name string, hallId uint, location str
 
 	// If it already existed (RowsAffected == 0), update its last seen date
 	if result.RowsAffected == 0 {
-		queryDish.LastSeenDate = today
 		if err := m.DB.
 			Model(&queryDish).
-			Select("Location", "LastSeenDate").
-			Updates(queryDish).
+			Update("last_seen_date", today).
 			Error; err != nil {
 			return models.Dish{}, err
 		}
