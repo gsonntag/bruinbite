@@ -47,6 +47,43 @@ func SubmitRatingHandler(mgr *db.DBManager) gin.HandlerFunc {
 
 func GetUserRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// get user ID from context OR from query parameters
+		userId, err := strconv.Atoi(c.GetString("userId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+			return
+		}
+
+		ratings, err := mgr.GetAllRatingsByUserIDOrUsername(uint(userId), "")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, ratings)
+	}
+}
+
+func GetUserRatingsFromUsernameHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username := c.Param("username")
+		if username == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
+			return
+		}
+
+		ratings, err := mgr.GetAllRatingsByUserIDOrUsername(0, username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, ratings)
+	}
+}
+
+// GetFriendRatingsHandler retrieves all ratings made by a user's friends
+func GetFriendRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		// get user ID from context
 		userId, err := strconv.Atoi(c.GetString("userId"))
 		if err != nil {
@@ -54,13 +91,13 @@ func GetUserRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
 			return
 		}
 
-		ratings, err := mgr.GetAllRatingsByUserID(uint(userId))
+		friendRatings, err := mgr.GetRatingsByFriends(uint(userId))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, ratings)
+		c.JSON(http.StatusOK, friendRatings)
 	}
 }
 

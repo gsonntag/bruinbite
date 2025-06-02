@@ -78,6 +78,10 @@ func RegisterRoutes(router *gin.Engine) {
 		handlers.AuthMiddleware(),
 		handlers.GetCurUserInfoHandler(DBManager))
 
+	// Register user info by username route
+	router.GET("/user/:username",
+		handlers.GetUserInfoHandler(DBManager))
+
 	// Register hall dishes route
 	router.GET("/allhalldishes",
 		handlers.AuthMiddleware(),
@@ -107,6 +111,17 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/userratings",
 		handlers.AuthMiddleware(),
 		handlers.GetUserRatingsHandler(DBManager))
+
+	// Get friend ratings route
+	// expecting no params, will return all ratings made by the user's friends
+	router.GET("/friendratings",
+		handlers.AuthMiddleware(),
+		handlers.GetFriendRatingsHandler(DBManager))
+
+	// get ratings for specific user
+	// expecting path param: username
+	router.GET("/user/:username/ratings",
+		handlers.GetUserRatingsFromUsernameHandler(DBManager))
 
 	// Get dish ratings route
 	// expecting path param: dish_id

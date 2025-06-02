@@ -164,7 +164,7 @@ export default function DishDetail() {
                                     </div>
                                     
                                     {rating.comment && (
-                                        <p className="text-gray-700 mt-2 italic">"{rating.comment}"</p>
+                                        <p className="text-gray-700 mt-2 italic">&quot;{rating.comment}&quot;</p>
                                     )}
                                 </div>
                             ))}

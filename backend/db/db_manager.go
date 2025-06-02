@@ -298,6 +298,30 @@ func (m *DBManager) GetAllRatingsByUserID(userID uint) ([]models.Rating, error) 
 	return ratings, nil
 }
 
+// GetAllRatingsByUserIDOrUsername retrieves all ratings made by a user
+func (m *DBManager) GetAllRatingsByUserIDOrUsername(userID uint, username string) ([]models.Rating, error) {
+	var ratings []models.Rating
+
+	// get userID from username if provided
+	if username != "" {
+		var user models.User
+		err := m.DB.Where("username = ?", username).First(&user).Error
+		if err != nil {
+			return nil, err
+		}
+		userID = user.ID
+	}
+
+	err := m.DB.Preload("Dish").Preload("User").
+		Where("user_id = ?", userID).
+		Find(&ratings).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return ratings, nil
+}
+
 // GetAllRatingsByDishID retrieves all ratings made for a dish
 func (m *DBManager) GetAllRatingsByDishID(dishID uint) ([]models.Rating, error) {
 	var ratings []models.Rating
@@ -312,6 +336,30 @@ func (m *DBManager) GetAllRatingsByDishID(dishID uint) ([]models.Rating, error) 
 
 	return ratings, nil
 }
+
+// GetRatingsByFriends retrieves all ratings made by a user's friends
+func (m *DBManager) GetRatingsByFriends(userID uint) ([]models.Rating, error) {
+	var ratings []models.Rating
+	// Get all friends of the user
+	friends, err := m.GetFriendsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+	// Extract friend IDs
+	friendIDs := make([]uint, len(friends))
+	for i, friend := range friends {
+		friendIDs[i] = friend.ID
+	}
+	// Query ratings made by friends
+	err = m.DB.Preload("Dish").Preload("User").
+		Where("user_id IN (?)", friendIDs).
+		Find(&ratings).Error
+	if err != nil {
+		return nil, err
+	}
+	return ratings, nil
+}
+
 
 func (m *DBManager) GetMenuByHallNameAndDate(hallName string, date models.Date) (*models.Menu, error) {
 	var menu models.Menu
@@ -531,6 +579,16 @@ func (m *DBManager) GetUsersByUsername(username string) ([]models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// GetUserByUsername retrieves a user by their username
+func (m *DBManager) GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := m.DB.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 // GetAllUsers retrieves all users (used for indexing)
