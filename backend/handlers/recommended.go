@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sort"
 	"time"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gsonntag/bruinbite/db"
@@ -36,13 +37,12 @@ type RecommendedHallQuery struct {
 // each hall's top 3 rated dishes.
 func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		rawUser, ok := c.Get("user")
+		userId, err := strconv.Atoi(c.GetString("userId"))
 		
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
 			return
 		}
-		user := rawUser.(models.User)
 
 		now := time.Now().In(mgr.TZ)
 		periods := GetAllowedMealPeriods(now)
@@ -75,7 +75,7 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 			return
 		}
 		var ratings []models.Rating
-		mgr.DB.Where("user_id=? AND dish_id IN ?", user.ID, dishIDs).Find(&ratings)
+		mgr.DB.Where("user_id=? AND dish_id IN ?", userId, dishIDs).Find(&ratings)
 		for _, r := range ratings {
 			userRatingMap[r.DishID] = float64(r.Score)
 		}
