@@ -542,3 +542,13 @@ func (m *DBManager) GetHallByID(hallID uint) (*models.DiningHall, error) {
 	}
 	return &hall, nil
 }
+
+// get dish information based on ID (used for search)
+func (m *DBManager) GetDishByID(dishID uint) (*models.Dish, error) {
+	var dish models.Dish
+	err := m.DB.Preload("Hall").First(&dish, dishID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &dish, nil
+}

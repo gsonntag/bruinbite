@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { FaSearch, FaFilter } from "react-icons/fa";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Hero() {
     const [query, setQuery] = useState("");
     const [selectedHall, setSelectedHall] = useState("");
     const [dishes, setDishes] = useState([]);
+    const router = useRouter();
 
     // Dining hall options for the filter dropdown
     const diningHalls = [
@@ -47,6 +49,10 @@ export default function Hero() {
         const timeoutId = setTimeout(searchDishes, 350);
         return () => clearTimeout(timeoutId);
     }, [query, selectedHall]);
+
+    const handleDishClick = (dish) => {
+        router.push(`/dish/${dish.id}`);
+    };
 
     return (
         <section className="w-full py-12 md:py-24 lg:py-32 ">
@@ -105,14 +111,32 @@ export default function Hero() {
 
                         {/* Search results */}
                         {dishes.length > 0 && (
-                            <div className="w-full rounded-lg shadow border border-gray-200 bg-white px-4 py-2 text-left max-h-64 overflow-y-auto">
-                                {dishes.map((dish, index) => (
-                                    <div key={index} className="hover:bg-gray-50 cursor-pointer py-2 px-2 rounded">
-                                        <div className="font-medium">{dish.name}</div>
-                                        <div className="text-sm text-gray-600">{dish.hall_name}</div>
-                                        {dish.description && dish.description !== "No description available" && (
-                                            <div className="text-xs text-gray-500 mt-1 truncate">{dish.description}</div>
-                                        )}
+                            <div className="w-full max-w-lg rounded-lg shadow border border-gray-200 bg-white text-left max-h-64 overflow-y-auto">
+                                {dishes.map((dish) => (
+                                    <div 
+                                        key={dish.id} 
+                                        className="hover:bg-gray-50 cursor-pointer px-4 py-3 border-b border-gray-100 last:border-b-0"
+                                        onClick={() => handleDishClick(dish)}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="font-medium text-gray-900">
+                                                    {dish.name}
+                                                </div>
+                                                <div className="text-sm text-gray-500">
+                                                    {dish.hall_name}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <span className="text-yellow-500 mr-1">★</span>
+                                                <span className="text-sm text-gray-600">
+                                                    {dish.average_rating > 0 
+                                                        ? dish.average_rating.toFixed(1) 
+                                                        : "No ratings"
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

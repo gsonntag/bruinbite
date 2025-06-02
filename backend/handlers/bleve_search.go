@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gsonntag/bruinbite/db"
@@ -11,8 +12,8 @@ import (
 // BleveSearchRequest defines the query parameters for the Bleve search endpoint
 type BleveSearchRequest struct {
 	Keyword string `form:"keyword" binding:"required"`
-	Hall    string `form:"hall"`    // Optional hall filter
-	Limit   int    `form:"limit"`   // Optional result limit
+	Hall    string `form:"hall"`  // Optional hall filter
+	Limit   int    `form:"limit"` // Optional result limit
 }
 
 // BleveSearchHandler returns a handler for Bleve-based dish search
@@ -37,16 +38,31 @@ func BleveSearchHandler(mgr *db.DBManager, searchMgr *search.BleveSearchManager)
 			return
 		}
 
-		// Format response
-		results := make([]map[string]interface{}, len(dishes))
-		for i, dish := range dishes {
-			results[i] = map[string]interface{}{
-				"id":          dish.ID,
-				"name":        dish.Name,
-				"hall_name":   dish.HallName,
-				"description": dish.Description,
-				"location":    dish.Location,
+		// Format response by getting full dish data from database
+		results := make([]map[string]interface{}, 0, len(dishes))
+		for _, dish := range dishes {
+			dishID, err := strconv.ParseUint(dish.ID, 10, 32)
+			if err != nil {
+				continue
 			}
+
+			// get dish info so we can add avg rating to display on frontend
+			fullDish, err := mgr.GetDishByID(uint(dishID))
+			if err != nil {
+				continue
+			}
+
+			// add average_rating to response
+			dishResponse := map[string]interface{}{
+				"id":             fullDish.ID,
+				"name":           fullDish.Name,
+				"hall_name":      fullDish.Hall.Name,
+				"description":    fullDish.Description,
+				"location":       fullDish.Location,
+				"average_rating": fullDish.AverageRating,
+			}
+
+			results = append(results, dishResponse)
 		}
 
 		c.JSON(http.StatusOK, gin.H{"dishes": results})

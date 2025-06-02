@@ -23,9 +23,9 @@ import (
 const Port = 8080
 
 var (
-	DBManager    *db.DBManager
+	DBManager     *db.DBManager
 	SearchManager *search.BleveSearchManager
-	Indexer      *search.Indexer
+	Indexer       *search.Indexer
 )
 
 func InitializeDatabase() error {
@@ -85,11 +85,11 @@ func RegisterRoutes(router *gin.Engine) {
 	// Legacy search route (SQL-based)
 	router.GET("/sql-search",
 		handlers.DishesSearchHandler(DBManager))
-		
+
 	// Bleve search route (for enhanced search with fuzzy matching, etc.)
 	router.GET("/search",
 		handlers.BleveSearchHandler(DBManager, SearchManager))
-		
+
 	// Admin endpoint to manually trigger reindexing
 	router.POST("/admin/reindex",
 		handlers.ReindexHandler(Indexer))
@@ -158,6 +158,10 @@ func RegisterRoutes(router *gin.Engine) {
 	router.POST("/decline-friend-request",
 		handlers.AuthMiddleware(),
 		handlers.DeclineFriendRequestHandler(DBManager))
+
+	// dish info based on id
+	router.GET("/dish/:id",
+		handlers.GetDishDetailsHandler(DBManager))
 
 	// Expecting query params: username
 	router.GET("/search-users",
