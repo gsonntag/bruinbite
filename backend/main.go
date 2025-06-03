@@ -97,7 +97,11 @@ func RegisterRoutes(router *gin.Engine) {
 
 	// Admin endpoint to manually trigger reindexing
 	router.POST("/admin/reindex",
-		handlers.ReindexHandler(Indexer))
+		handlers.ReindexHandler(Indexer, DBManager, UserSearchManager))
+
+	// Admin endpoint to manually trigger user reindexing only (useful after profile updates)
+	router.POST("/admin/reindex-users",
+		handlers.ReindexUsersHandler(DBManager, UserSearchManager))
 
 	// Register ratings route
 	// expecting body params: dish_id, rating, comment (optional)
@@ -188,6 +192,18 @@ func RegisterRoutes(router *gin.Engine) {
 	router.GET("/sql-search-users",
 		handlers.AuthMiddleware(),
 		handlers.SearchUsersHandler(DBManager))
+
+	// Profile update routes
+	router.PUT("/profile",
+		handlers.AuthMiddleware(),
+		handlers.UpdateProfileHandler(DBManager, UserSearchManager))
+
+	router.POST("/profile/picture",
+		handlers.AuthMiddleware(),
+		handlers.UploadProfilePictureHandler(DBManager, UserSearchManager))
+
+	// Static file serving for uploads
+	router.Static("/uploads", "./uploads")
 }
 
 func InitializeRouter() error {
