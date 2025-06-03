@@ -143,7 +143,7 @@ export default function DiningHalls() {
                         {diningHalls.map((hall) => (
                             <div
                                 key={hall.id}
-                                className="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden h-full cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-200"
+                                className="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden h-full cursor-pointer hover:shadow-lg"
                                 onClick={() => handleDiningHallClick(hall)}
                             >
                                 <div className="md:w-48 h-48 md:h-auto">
@@ -160,7 +160,7 @@ export default function DiningHalls() {
                                         <span>{hall.rating}</span>
                                         <span className="ml-2 text-gray-500">({hall.reviewCount} reviews)</span>
                                     </div>
-                                    <p className="text-xs text-blue-600 mt-2 font-medium">Click to view menu</p>
+                                    <p className="text-xs text-left text-blue-600 mt-2 font-medium">Click to view menu</p>
                                 </div>
                             </div>
                         ))}
