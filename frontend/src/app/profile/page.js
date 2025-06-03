@@ -269,8 +269,12 @@ export default function Profile() {
     const handleSendFriendRequest = async (userId) => {
         try {
             await sendFriendRequest(userId);
-            // Optionally refresh search results or show a success message
+
             const response = await searchUsers(searchQuery);
+            const updatedOutgoingRequests = await getOutgoingFriendRequests();
+            if (updatedOutgoingRequests) {
+                setOutgoingFriendRequests(updatedOutgoingRequests.requests || []);
+            }
             setSearchResults(response || []);
         } catch (error) {
             console.error('Error sending friend request:', error);
@@ -490,20 +494,22 @@ export default function Profile() {
                                             <p className="text-sm text-gray-500">{user.email}</p>
                                         </div>
                                     </div>
-                                    {
-                                        friendsList.some(friend => friend.ID === user.ID) ? (
-                                            <button className="text-[#0d92db] hover:text-blue-600 text-sm font-medium">
-                                                Friends
-                                            </button>
-                                                                                ) : (
-                                            <button
-                                                className="px-4 py-2 bg-[#0d92db] hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
-                                                onClick={() => handleSendFriendRequest(user.ID)}
-                                            >
-                                                Add Friend
-                                            </button>
-                                        )
-                                    }
+                                    {friendsList.some(friend => friend.ID === user.ID) ? (
+                                        <button className="text-[#0d92db] hover:text-blue-600 text-sm font-medium">
+                                            Friends
+                                        </button>
+                                    ) : ( outgoingFriendRequests.some(request => request.to_user.ID === user.ID) ? (
+                                        <button className="px-4 py-2 bg-[#86C8EC] text-white text-sm rounded-md transition-colors">
+                                            Pending Request
+                                        </button>
+                                    ) : (
+                                        <button
+                                            className="px-4 py-2 bg-[#0d92db] hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
+                                            onClick={() => handleSendFriendRequest(user.ID)}
+                                        >
+                                            Add Friend
+                                        </button>
+                                    ))}
 
                                 </div>
                             ))}
