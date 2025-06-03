@@ -272,5 +272,18 @@ func (m *BleveUserSearchManager) ReindexAllUsers(docs []UserDocument) error {
 
 // UpdateUser updates a user in the index
 func (m *BleveUserSearchManager) UpdateUser(doc UserDocument) error {
-	return m.IndexUser(doc) // Bleve handles updates as re-indexing
+	// First delete any existing document with this ID to ensure clean update
+	if err := m.index.Delete(doc.ID); err != nil {
+		// Ignore "not found" errors, but log other errors
+		if !strings.Contains(err.Error(), "not found") {
+			fmt.Printf("Warning: error deleting old user document %s: %v\n", doc.ID, err)
+		}
+	}
+
+	// Re-index the updated document
+	if err := m.index.Index(doc.ID, doc); err != nil {
+		return fmt.Errorf("failed to index updated user document %s: %w", doc.ID, err)
+	}
+
+	return nil
 }

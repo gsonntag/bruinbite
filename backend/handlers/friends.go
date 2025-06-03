@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -15,7 +14,6 @@ func GetFriendsHandler(mgr *db.DBManager) gin.HandlerFunc {
 		userId := c.GetString("userId")
 		// userId is a string, but we need to convert it to an int
 		userIdInt, err := strconv.Atoi(userId)
-		fmt.Println("userId: ", userId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
@@ -37,7 +35,6 @@ func GetOutgoingFriendRequestsHandler(mgr *db.DBManager) gin.HandlerFunc {
 		userId := c.GetString("userId")
 		// userId is a string, but we need to convert it to an int
 		userIdInt, err := strconv.Atoi(userId)
-		fmt.Println("userId: ", userId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
@@ -59,7 +56,6 @@ func GetIncomingFriendRequestsHandler(mgr *db.DBManager) gin.HandlerFunc {
 		userId := c.GetString("userId")
 		// userId is a string, but we need to convert it to an int
 		userIdInt, err := strconv.Atoi(userId)
-		fmt.Println("userId: ", userId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
@@ -179,34 +175,79 @@ func BleveSearchUsersHandler(mgr *db.DBManager, userSearchManager *search.BleveU
 			return
 		}
 
-		// Search using Bleve with fuzzy matching
-		userDocs, err := userSearchManager.SearchUsers(username, uint(userIdInt), 20) // Limit to 20 results
+		// Track found user IDs to avoid duplicates
+		foundUserIDs := make(map[uint]bool)
+		var allUsers []map[string]interface{}
+
+		// First: Try Bleve search with fuzzy matching
+		userDocs, err := userSearchManager.SearchUsers(username, uint(userIdInt), 20)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "search error"})
-			return
+			// Bleve search failed, continue with database fallback
+		} else {
+			// Get fresh user data from database for each Bleve search result
+			for _, doc := range userDocs {
+				userID, err := strconv.ParseUint(doc.ID, 10, 32)
+				if err != nil {
+					continue
+				}
+
+				// Skip if we've already found this user
+				if foundUserIDs[uint(userID)] {
+					continue
+				}
+
+				fullUser, err := mgr.GetUserByID(uint(userID))
+				if err != nil {
+					continue
+				}
+
+				foundUserIDs[uint(userID)] = true
+				user := map[string]interface{}{
+					"ID":              fullUser.ID,
+					"username":        fullUser.Username,
+					"email":           fullUser.Email,
+					"profile_picture": fullUser.ProfilePicture,
+					"CreatedAt":       fullUser.CreatedAt,
+					"UpdatedAt":       fullUser.UpdatedAt,
+					"DeletedAt":       fullUser.DeletedAt,
+					"is_admin":        fullUser.IsAdmin,
+				}
+				allUsers = append(allUsers, user)
+			}
 		}
 
-		// Convert UserDocuments back to User models for consistency with frontend
-		var users []map[string]interface{}
-		for _, doc := range userDocs {
-			// Parse user ID back to uint
-			userID, err := strconv.ParseUint(doc.ID, 10, 32)
-			if err != nil {
-				continue // Skip invalid IDs
-			}
+		// Second: Also try direct database search to catch any users missed by Bleve
+		// This ensures recently updated profiles are found even if search index is stale
+		dbUsers, err := mgr.GetUsersByUsername(username)
+		if err != nil {
+			// Database search failed, return whatever we found from Bleve
+		} else {
+			for _, dbUser := range dbUsers {
+				// Skip current user and already found users
+				if dbUser.ID == uint(userIdInt) || foundUserIDs[dbUser.ID] {
+					continue
+				}
 
-			user := map[string]interface{}{
-				"ID":        uint(userID),
-				"username":  doc.Username,
-				"email":     doc.Email,
-				"CreatedAt": doc.CreatedAt,
-				"UpdatedAt": doc.CreatedAt, // Use CreatedAt as UpdatedAt for simplicity
-				"DeletedAt": nil,
-				"is_admin":  false,
+				foundUserIDs[dbUser.ID] = true
+				user := map[string]interface{}{
+					"ID":              dbUser.ID,
+					"username":        dbUser.Username,
+					"email":           dbUser.Email,
+					"profile_picture": dbUser.ProfilePicture,
+					"CreatedAt":       dbUser.CreatedAt,
+					"UpdatedAt":       dbUser.UpdatedAt,
+					"DeletedAt":       dbUser.DeletedAt,
+					"is_admin":        dbUser.IsAdmin,
+				}
+				allUsers = append(allUsers, user)
 			}
-			users = append(users, user)
 		}
 
-		c.JSON(http.StatusOK, users)
+		// Limit results to 20 and sort by relevance (Bleve results first, then DB results)
+		if len(allUsers) > 20 {
+			allUsers = allUsers[:20]
+		}
+
+		c.JSON(http.StatusOK, allUsers)
 	}
 }

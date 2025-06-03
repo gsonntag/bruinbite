@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import EditProfileModal from '../components/EditProfileModal';
 import { useRouter } from 'next/navigation';
 
 
@@ -187,6 +188,7 @@ export default function Profile() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState('profile'); // 'profile', 'friends', 'requests', 'search'
     const [loading, setLoading] = useState(true);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const router = useRouter();
 
     // Check if user is logged in on component mount
@@ -285,6 +287,25 @@ export default function Profile() {
         }
     };
 
+    const handleProfileUpdate = async (updatedUser) => {
+        console.log('Profile update received:', updatedUser);
+        
+        // Update the local user info state
+        setUserInfo(updatedUser);
+        
+        // Also refresh user data from server to ensure consistency
+        try {
+            const refreshedUserInfo = await getUserInfo();
+            if (refreshedUserInfo) {
+                setUserInfo(refreshedUserInfo);
+                console.log('User info refreshed from server:', refreshedUserInfo);
+            }
+        } catch (error) {
+            console.error('Error refreshing user info after update:', error);
+            // Don't throw error here - we already have the updated data from the response
+        }
+    };
+
     // Don't render anything until auth check completes
     if (!authChecked || loading) {
         return (
@@ -300,9 +321,17 @@ export default function Profile() {
     const renderProfileSection = () => (
         <div className="bg-white rounded-lg shadow-md p-6">
             <div className="text-center mb-6">
-                <div className="h-24 w-24 rounded-full bg-[#0d92db] flex items-center justify-center text-4xl font-bold text-white mx-auto mb-4">
-                    {userInfo?.username?.charAt(0).toUpperCase()}
-                </div>
+                {userInfo?.profile_picture ? (
+                    <img
+                        src={`http://localhost:8080${userInfo.profile_picture}`}
+                        alt="Profile"
+                        className="h-24 w-24 rounded-full mx-auto mb-4 object-cover border-4 border-gray-200"
+                    />
+                ) : (
+                    <div className="h-24 w-24 rounded-full bg-[#0d92db] flex items-center justify-center text-4xl font-bold text-white mx-auto mb-4">
+                        {userInfo?.username?.charAt(0).toUpperCase()}
+                    </div>
+                )}
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">{userInfo?.username}</h1>
                 <p className="text-gray-600">{userInfo?.email}</p>
             </div>
@@ -325,7 +354,10 @@ export default function Profile() {
                         Active
                     </span>
                 </div>
-                <button className="w-full bg-[#0d92db] hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                <button 
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="w-full bg-[#0d92db] hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                >
                     Edit Profile
                 </button>
             </div>
@@ -340,9 +372,17 @@ export default function Profile() {
                     {friendsList.map(friend => (
                         <div key={friend.ID} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                             <div className="flex items-center space-x-3">
-                                <div className="h-12 w-12 rounded-full bg-[#0d92db] flex items-center justify-center text-white font-medium">
-                                    {friend.username.charAt(0).toUpperCase()}
-                                </div>
+                                {friend.profile_picture ? (
+                                    <img
+                                        src={`http://localhost:8080${friend.profile_picture}`}
+                                        alt={friend.username}
+                                        className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
+                                    />
+                                ) : (
+                                    <div className="h-12 w-12 rounded-full bg-[#0d92db] flex items-center justify-center text-white font-medium">
+                                        {friend.username.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
                                 <div>
                                     <p className="font-medium text-gray-900">{friend.username}</p>
                                     <p className="text-sm text-gray-500">{friend.email}</p>
@@ -373,9 +413,17 @@ export default function Profile() {
                     {friendRequests.map(request => (
                         <div key={request.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-center space-x-3">
-                                <div className="h-12 w-12 rounded-full bg-[#0d92db] flex items-center justify-center text-white font-medium">
-                                    {request.from_user.username.charAt(0).toUpperCase()}
-                                </div>
+                                {request.from_user.profile_picture ? (
+                                    <img
+                                        src={`http://localhost:8080${request.from_user.profile_picture}`}
+                                        alt={request.from_user.username}
+                                        className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
+                                    />
+                                ) : (
+                                    <div className="h-12 w-12 rounded-full bg-[#0d92db] flex items-center justify-center text-white font-medium">
+                                        {request.from_user.username.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
                                 <div>
                                     <p className="font-medium text-gray-900">{request.from_user.username}</p>
                                     <p className="text-sm text-gray-500">{request.from_user.email}</p>
@@ -426,9 +474,17 @@ export default function Profile() {
                             {searchResults.map(user => (
                                 <div key={user.ID} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                     <div className="flex items-center space-x-3">
-                                        <div className="h-12 w-12 rounded-full bg-[#0d92db] flex items-center justify-center text-white font-medium">
-                                            {user.username.charAt(0).toUpperCase()}
-                                        </div>
+                                        {user.profile_picture ? (
+                                            <img
+                                                src={`http://localhost:8080${user.profile_picture}`}
+                                                alt={user.username}
+                                                className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
+                                            />
+                                        ) : (
+                                            <div className="h-12 w-12 rounded-full bg-[#0d92db] flex items-center justify-center text-white font-medium">
+                                                {user.username.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
                                         <div>
                                             <p className="font-medium text-gray-900">{user.username}</p>
                                             <p className="text-sm text-gray-500">{user.email}</p>
@@ -529,6 +585,14 @@ export default function Profile() {
                     {activeTab === 'search' && renderSearchSection()}
                 </div>
             </div>
+
+            {/* Edit Profile Modal */}
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                userInfo={userInfo}
+                onUpdate={handleProfileUpdate}
+            />
         </div>
     );
 }

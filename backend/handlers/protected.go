@@ -22,8 +22,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 		parts := strings.SplitN(auth, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			fmt.Println(len(parts))
-			fmt.Println(strings.ToLower(parts[0]))
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			c.Abort()
 			return
@@ -67,10 +65,10 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// ProtectedHandler handles protected routes
 func ProtectedHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId := c.GetString("userId")
-		fmt.Println("user " + userId + " is at the protected route")
 		c.JSON(http.StatusOK, gin.H{
 			"message": "hello, " + userId,
 		})

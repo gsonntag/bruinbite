@@ -11,6 +11,7 @@ export default function Navbar() {
     const [showLoginForm, setShowLoginForm] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [userInfo, setUserInfo] = useState(null);
     const dropdownRef = useRef(null);
     const pathname = usePathname();
 
@@ -18,7 +19,32 @@ export default function Navbar() {
     useEffect(() => {
         const token = localStorage.getItem('jwt');
         setIsLoggedIn(!!token);
+        
+        // Fetch user info if logged in
+        if (token) {
+            fetchUserInfo();
+        }
     }, []);
+
+    const fetchUserInfo = async () => {
+        try {
+            const token = localStorage.getItem('jwt');
+            const response = await fetch('http://localhost:8080/userinfo', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                setUserInfo(data.user);
+            }
+        } catch (error) {
+            console.error('Failed to fetch user info:', error);
+        }
+    };
 
     // Close the dropdown when clicking outside of it
     useEffect(() => {
@@ -38,6 +64,8 @@ export default function Navbar() {
         try {
             await logout();
             setIsLoggedIn(false);
+            setUserInfo(null);
+            setShowDropdown(false);
             toast.success('Successfully logged out');
             window.location.href = '/'; // Redirect to home page after logout
         } catch (error) {
@@ -49,6 +77,7 @@ export default function Navbar() {
     const handleLoginSuccess = () => {
         setIsLoggedIn(true);
         setShowLoginForm(false);
+        fetchUserInfo(); // Fetch user info after login
         toast.success('Successfully logged in');
     };
 
@@ -96,13 +125,17 @@ export default function Navbar() {
                                         onClick={toggleDropdown}
                                         className="flex items-center gap-2 px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300"
                                     >
-                                        <Image
-                                            src="/profile-pic.png"
-                                            alt="Profile Picture"
-                                            width={32}
-                                            height={32}
-                                            className="h-8 w-8 rounded-full"
-                                        />
+                                        {userInfo?.profile_picture ? (
+                                            <img
+                                                src={`http://localhost:8080${userInfo.profile_picture}`}
+                                                alt="Profile Picture"
+                                                className="h-8 w-8 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="h-8 w-8 rounded-full bg-[#0d92db] flex items-center justify-center text-white text-sm font-medium">
+                                                {userInfo?.username?.charAt(0).toUpperCase() || 'U'}
+                                            </div>
+                                        )}
                                         <span>Profile</span>
                                     </button>
                                     {showDropdown && (

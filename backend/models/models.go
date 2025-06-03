@@ -64,6 +64,7 @@ type User struct {
 	Username               string          `gorm:"type:text;unique;not null" json:"username"`
 	HashedPassword         string          `gorm:"type:text;not null" json:"-"`
 	Email                  string          `gorm:"type:text;unique;not null" json:"email"`
+	ProfilePicture         *string         `gorm:"type:text" json:"profile_picture,omitempty"`
 	IsAdmin                bool            `gorm:"not null;default:false" json:"is_admin"`
 	Ratings                []Rating        `gorm:"foreignKey:UserID" json:"ratings,omitempty"`
 	FriendRequestsSent     []FriendRequest `gorm:"foreignKey:FromID" json:"friend_requests_sent,omitempty"`   // requests sent by this user
@@ -99,9 +100,9 @@ type DiningHall struct {
 
 type Dish struct {
 	ID            uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-	HallID        uint           `gorm:"not null;index:idx_dish_hall_name,unique" json:"hall_id"`
+	HallID        uint           `gorm:"not null;index" json:"hall_id"`
 	Hall          DiningHall     `gorm:"foreignKey:HallID" json:"-"`
-	Name          string         `gorm:"type:text;not null;index:idx_dish_hall_name,unique" json:"name"`
+	Name          string         `gorm:"type:text;not null;index" json:"name"`
 	Description   *string        `gorm:"type:text" json:"description,omitempty"`
 	AverageRating float64        `gorm:"type:numeric(7,5);not null;default:0.00000" json:"average_rating"`
 	Tags          pq.StringArray `gorm:"type:text[];not null;default:'{}'" json:"tags"`

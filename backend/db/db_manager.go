@@ -223,7 +223,6 @@ func (m *DBManager) GetDishesByName(name string, limit int) ([]models.Dish, erro
 	var dishes []models.Dish
 	err := m.DB.Preload("Hall").Where("name ~* ?", pattern).Limit(limit).Find(&dishes).Error
 	if err != nil {
-		fmt.Print(err)
 		return nil, err
 	}
 	return dishes, nil
@@ -258,8 +257,6 @@ func (m *DBManager) CreateRating(rating *models.Rating) error {
 	if err != nil {
 		return fmt.Errorf("could not update dish average rating: %w", err)
 	}
-	// log the avg rating
-	fmt.Printf("Updated average rating for dish ID %d: %.5f\n", dish.ID, dish.AverageRating)
 	// Create the rating
 	return m.DB.Create(rating).Error
 }
@@ -359,7 +356,6 @@ func (m *DBManager) GetRatingsByFriends(userID uint) ([]models.Rating, error) {
 	}
 	return ratings, nil
 }
-
 
 func (m *DBManager) GetMenuByHallNameAndDate(hallName string, date models.Date) (*models.Menu, error) {
 	var menu models.Menu
@@ -619,4 +615,30 @@ func (m *DBManager) GetDishByID(dishID uint) (*models.Dish, error) {
 		return nil, err
 	}
 	return &dish, nil
+}
+
+// UpdateUserProfile updates a user's profile information
+func (m *DBManager) UpdateUserProfile(userID uint, username, email string, profilePicture *string) error {
+	// Create update map with the fields we want to update
+	updates := map[string]interface{}{
+		"username": username,
+		"email":    email,
+	}
+
+	// Only update profile picture if provided
+	if profilePicture != nil {
+		updates["profile_picture"] = *profilePicture
+	}
+
+	// Update the user record
+	result := m.DB.Model(&models.User{}).Where("id = ?", userID).Updates(updates)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("user with ID %d not found", userID)
+	}
+
+	return nil
 }
