@@ -211,6 +211,10 @@ export default function Menus() {
         router.push(`/add-review?${params.toString()}`);
     };
 
+    const handleDishClick2 = (dish) => {
+        router.push(`/dish/${dish.id.toString()}`);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
@@ -305,19 +309,31 @@ export default function Menus() {
                                     {dishes.map((dish) => (
                                         <div 
                                             key={dish.id} 
-                                            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer hover:border-blue-300"
-                                            onClick={() => handleDishClick(dish)}
+                                            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow hover:border-blue-300"
                                         >
                                             <div className="p-4">
                                                 <h4 className="font-semibold text-lg mb-2">{dish.name}</h4>
-                                                <div className="flex items-center justify-between mt-2">
+                                                <div className="flex items-center mt-2">
                                                     <div className="flex items-center">
                                                         <span className="text-yellow-500 mr-1">★</span>
                                                         <span className="text-sm text-gray-700">
                                                             {dish.average_rating > 0 ? dish.average_rating.toFixed(1) : "No ratings"}
                                                         </span>
                                                     </div>
-                                                    <span className="text-xs text-blue-600 font-medium">Click to review</span>
+                                                </div>
+                                                <div className="flex gap-2 mt-3">
+                                                    <button 
+                                                        onClick={() => handleDishClick(dish)}
+                                                        className="bg-[#0d92db] cursor-pointer hover:bg-sky-600 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                                                    >
+                                                        Add Review
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDishClick2(dish)}
+                                                        className="bg-zinc-400 cursor-pointer hover:bg-zinc-500 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                                                    >
+                                                        See Reviews
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
