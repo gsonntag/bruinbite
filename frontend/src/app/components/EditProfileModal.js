@@ -50,7 +50,11 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
     const convertImageToBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
+            reader.onload = () => {
+                const dataUrl = reader.result;
+                const base64Data = dataUrl.split(',')[1];
+                resolve(base64Data);
+            };
             reader.onerror = reject;
             reader.readAsDataURL(file);
         });

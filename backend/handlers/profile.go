@@ -66,17 +66,35 @@ func UpdateProfileHandler(mgr *db.DBManager, userSearchManager *search.BleveUser
 		// Handle base64 profile picture if provided
 		var profilePicturePath *string
 		if req.ProfilePicture != nil && *req.ProfilePicture != "" {
+			base64Data := *req.ProfilePicture
+			if strings.Contains(base64Data, ",") {
+				parts := strings.Split(base64Data, ",")
+				if len(parts) > 1 {
+					base64Data = parts[1]
+				}
+			}
+
+			if len(base64Data) == 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "empty image data"})
+				return
+			}
+
 			// Decode base64 image
-			data, err := base64.StdEncoding.DecodeString(*req.ProfilePicture)
+			data, err := base64.StdEncoding.DecodeString(base64Data)
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid base64 image data"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid base64 image data: " + err.Error()})
+				return
+			}
+
+			if len(data) < 100 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "image file appears to be corrupted or too small"})
 				return
 			}
 
 			// Detect image type and validate
 			contentType := http.DetectContentType(data)
 			if !strings.HasPrefix(contentType, "image/") {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid image format"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "uploaded file is not a valid image format"})
 				return
 			}
 
