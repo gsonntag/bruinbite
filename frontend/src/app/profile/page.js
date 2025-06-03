@@ -17,12 +17,12 @@ function getUserInfo() {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to fetch user info');
-        }
-        return response.json();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch user info');
+            }
+            return response.json();
+        });
 }
 
 // get friends list from api
@@ -38,12 +38,12 @@ function getFriendsList() {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to fetch friends list');
-        }
-        return response.json();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch friends list');
+            }
+            return response.json();
+        });
 }
 
 
@@ -60,12 +60,33 @@ function getFriendRequests() {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to fetch friend requests');
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch friend requests');
+            }
+            return response.json();
+        });
+}
+
+// get outgoing friend requests
+function getOutgoingFriendRequests() {
+    const token = localStorage.getItem('jwt');
+    if (!token) {
+        return null;
+    }
+    return fetch('http://localhost:8080/out-friend-requests', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
         }
-        return response.json();
-    });
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch friend requests');
+            }
+            return response.json();
+        });
 }
 
 // Accept friend request
@@ -82,12 +103,12 @@ function acceptFriendRequest(requestId) {
         },
         body: JSON.stringify({ request_id: requestId })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to accept friend request');
-        }
-        return response.json();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to accept friend request');
+            }
+            return response.json();
+        });
 }
 
 // Decline friend request
@@ -104,12 +125,12 @@ function declineFriendRequest(requestId) {
         },
         body: JSON.stringify({ request_id: requestId })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to decline friend request');
-        }
-        return response.json();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to decline friend request');
+            }
+            return response.json();
+        });
 }
 
 // send friend request
@@ -126,12 +147,12 @@ function sendFriendRequest(userId) {
         },
         body: JSON.stringify({ friend_id: userId })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to send friend request');
-        }
-        return response.json();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to send friend request');
+            }
+            return response.json();
+        });
 }
 
 // Search for other users to add as friends
@@ -147,12 +168,12 @@ function searchUsers(keyword) {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to search for users');
-        }
-        return response.json();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to search for users');
+            }
+            return response.json();
+        });
 }
 
 export default function Profile() {
@@ -161,6 +182,7 @@ export default function Profile() {
     const [userInfo, setUserInfo] = useState(null);
     const [friendsList, setFriendsList] = useState([]);
     const [friendRequests, setFriendRequests] = useState([]);
+    const [outgoingFriendRequests, setOutgoingFriendRequests] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState('profile'); // 'profile', 'friends', 'requests', 'search'
@@ -188,13 +210,18 @@ export default function Profile() {
             Promise.all([
                 getUserInfo(),
                 getFriendsList(),
-                getFriendRequests()
-            ]).then(([userResponse, friendsResponse, requestsResponse]) => {
+                getFriendRequests(),
+                getOutgoingFriendRequests()
+            ]).then(([userResponse, friendsResponse, requestsResponse, outgoingResponse]) => {
                 if (userResponse) setUserInfo(userResponse.user);
                 if (friendsResponse) setFriendsList(friendsResponse.friends || []);
                 if (requestsResponse) {
                     setFriendRequests(requestsResponse.requests || []);
                     console.log('Friend requests:', requestsResponse.requests);
+                }
+                if (outgoingResponse) {
+                    setOutgoingFriendRequests(outgoingResponse.requests || []);
+                    console.log('Outgoing friend requests:', outgoingResponse.requests);
                 }
                 setLoading(false);
             }).catch(error => {
@@ -279,7 +306,7 @@ export default function Profile() {
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">{userInfo?.username}</h1>
                 <p className="text-gray-600">{userInfo?.email}</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <div className="text-3xl font-bold text-[#0d92db] mb-1">{friendsList.length}</div>
@@ -355,13 +382,13 @@ export default function Profile() {
                                 </div>
                             </div>
                             <div className="flex space-x-2">
-                                <button 
+                                <button
                                     onClick={() => handleAcceptRequest(request.id)}
                                     className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm rounded-md transition-colors"
                                 >
                                     Accept
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => handleDeclineRequest(request.id)}
                                     className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md transition-colors"
                                 >
@@ -407,12 +434,21 @@ export default function Profile() {
                                             <p className="text-sm text-gray-500">{user.email}</p>
                                         </div>
                                     </div>
-                                    <button 
-                                        className="px-4 py-2 bg-[#0d92db] hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
-                                        onClick={() => handleSendFriendRequest(user.ID)}
-                                    >
-                                        Add Friend
-                                    </button>
+                                    {
+                                        friendsList.some(friend => friend.ID === user.ID) ? (
+                                            <button className="text-[#0d92db] hover:text-blue-600 text-sm font-medium">
+                                                Friends
+                                            </button>
+                                                                                ) : (
+                                            <button
+                                                className="px-4 py-2 bg-[#0d92db] hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
+                                                onClick={() => handleSendFriendRequest(user.ID)}
+                                            >
+                                                Add Friend
+                                            </button>
+                                        )
+                                    }
+
                                 </div>
                             ))}
                         </div>
@@ -442,33 +478,30 @@ export default function Profile() {
                         <nav className="-mb-px flex space-x-8">
                             <button
                                 onClick={() => setActiveTab('profile')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'profile'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'profile'
                                         ? 'border-[#0d92db] text-[#0d92db]'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Profile
                             </button>
                             <button
                                 onClick={() => setActiveTab('friends')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'friends'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'friends'
                                         ? 'border-[#0d92db] text-[#0d92db]'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Friends ({friendsList.length})
                             </button>
                             <button
                                 onClick={() => setActiveTab('requests')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'requests'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'requests'
                                         ? 'border-[#0d92db] text-[#0d92db]'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
-                                Requests 
+                                Requests
                                 {friendRequests.length > 0 && (
                                     <span className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
                                         {friendRequests.length}
@@ -477,11 +510,10 @@ export default function Profile() {
                             </button>
                             <button
                                 onClick={() => setActiveTab('search')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'search'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'search'
                                         ? 'border-[#0d92db] text-[#0d92db]'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Find Friends
                             </button>
