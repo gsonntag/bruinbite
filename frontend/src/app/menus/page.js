@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import Navbar from "../components/Navbar";
-import RecommendedModal from "../components/RecommendedModal";
+export const dynamic = 'force-dynamic'; // skip pre-rendering in build
+import { useState, useEffect, useCallback, } from "react";
+import { Navbar } from "../components/Navbar";
+import { RecommendedModal } from "../components/RecommendedModal";
 import { useRouter } from "next/navigation";
 
 // TODO: possibly dynamically get the hall names from the API
@@ -98,7 +99,6 @@ export default function Menus() {
 
   const getInitialHall = () => {
     if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
       const hallParam = urlParams.get("hall");
       if (hallParam && Object.keys(hallApiNameToFormName).includes(hallParam)) {
         return hallParam;

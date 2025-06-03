@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Image } from 'next/image';
 
 export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }) {
     const [formData, setFormData] = useState({
@@ -173,7 +174,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
                     <div className="text-center">
                         <div className="mb-4">
                             {imagePreview ? (
-                                <img
+                                <Image
                                     src={imagePreview.startsWith('http') ? imagePreview : `http://localhost:8080${imagePreview}`}
                                     alt="Profile preview"
                                     className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-200"

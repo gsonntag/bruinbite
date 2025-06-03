@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '../utils/hallMaps';
 
-export default function RecommendedModal({ isOpen, onClose }) {
+export function RecommendedModal({ isOpen, onClose }) {
     const [recHallsData, setRecHallsData] = useState([]);
     const [error, setError] = useState('');
     const router = useRouter();
