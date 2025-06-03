@@ -37,4 +37,4 @@ if ! pip3 show bs4 >/dev/null 2>&1; then
 fi
 
 cd "$ROOT"
-go run main.go 2>&1 | egrep -v 'Running in "debug" mode|using (env|code)|Logger and Recovery middleware|trusted all proxies|don-t-trust-all-proxies'
+go run main.go --reindex 2>&1 | egrep -v 'Running in "debug" mode|using (env|code)|Logger and Recovery middleware|trusted all proxies|don-t-trust-all-proxies'

@@ -39,7 +39,7 @@ export default function Navbar() {
             
             if (response.ok) {
                 const data = await response.json();
-                setUserInfo(data.user);
+                setUserInfo(data);
             }
         } catch (error) {
             console.error('Failed to fetch user info:', error);
