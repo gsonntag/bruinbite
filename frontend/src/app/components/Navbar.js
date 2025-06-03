@@ -102,7 +102,7 @@ export default function Navbar() {
                         </span>
                     </Link>
                     <div className="flex items-center gap-4">
-                        {isLoggedIn && pathname !== '/add-review' && (
+                        {isLoggedIn && (
                             <><Link href="/add-review">
                                 <button className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300">
                                     Add a Review
