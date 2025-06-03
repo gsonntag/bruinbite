@@ -24,7 +24,7 @@ def fetch_dining_data():
         # "meal-swipe-exchange", # HILL FOOD TRUCKS -- NEEDS EXTRA PROCESSING
         "rendezvous", # build your own, how do we want to do that?
         "the-drey",
-        # "the-study-at-hedrick" # The study is build your own, which might be a little problematic
+        "the-study-at-hedrick", # The study is build your own, which might be a little problematic
         "spice-kitchen"
     ]
 
@@ -125,10 +125,6 @@ def fetch_dining_data():
         if menu_data == {}:
             print(f'{name} IS EITHER CLOSED OR ERROR FOUND', file=sys.stderr)
             
-
-    # manually add study at hedrick options
-    full_data['the-study-at-hedrick'] = {}
-    
     return full_data
 
 def main():
