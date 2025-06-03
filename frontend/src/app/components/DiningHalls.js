@@ -1,23 +1,7 @@
 import { FaStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-
-const hallApiNameToDisplayName = {
-    "bruin-cafe": "Bruin Café",
-    "bruin-plate": "Bruin Plate",
-    "cafe-1919": "Café 1919",
-    "de-neve-dining": "De Neve",
-    "the-drey": "The Drey",
-    "epicuria-at-covel": "Epicuria",
-    "epicuria-at-ackerman": "Epic at Ackerman",
-    "rendezvous": "Rendezvous",
-    "the-study-at-hedrick": "The Study",
-    "spice-kitchen": "Spice Kitchen at Bruin Bowl"
-};
-
-const displayNameToApiName = Object.fromEntries(
-    Object.entries(hallApiNameToDisplayName).map(([api, display]) => [display, api])
-);
+import { hallApiNameToDisplayName, displayNameToApiName } from '../utils/hallMaps';
 
 // Image mapping for dining halls (since images aren't stored in database)
 const diningHallImages = {

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getDisplayName } from '../utils/hallMaps';
 
 export default function RecommendedModal({ isOpen, onClose }) {
     const [recHallsData, setRecHallsData] = useState([]);
@@ -94,7 +95,7 @@ export default function RecommendedModal({ isOpen, onClose }) {
                             <div key={hallData.hall.id} className="bg-gray-50 rounded-lg p-4">
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="text-lg font-semibold text-gray-800">
-                                        #{index+1} {hallData.hall.name}
+                                        #{index+1} {getDisplayName(hallData.hall.name)}
                                     </h3>
                                     <div className="text-right">
                                         <div className="flex items-center">

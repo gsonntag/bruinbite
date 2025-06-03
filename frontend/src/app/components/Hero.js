@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FaSearch, FaFilter } from "react-icons/fa";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { getDisplayName } from "../utils/hallMaps";
 
 export default function Hero() {
     const [query, setQuery] = useState("");
@@ -146,7 +147,7 @@ export default function Hero() {
                                                     {dish.name}
                                                 </div>
                                                 <div className="text-sm text-gray-500">
-                                                    {dish.hall_name}
+                                                    {getDisplayName(dish.hall_name)}
                                                 </div>
                                             </div>
                                             <div className="flex items-center">
