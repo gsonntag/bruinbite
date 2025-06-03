@@ -215,7 +215,10 @@ export default function Profile() {
                 getFriendRequests(),
                 getOutgoingFriendRequests()
             ]).then(([userResponse, friendsResponse, requestsResponse, outgoingResponse]) => {
-                if (userResponse) setUserInfo(userResponse.user);
+                if (userResponse) {
+                    setUserInfo(userResponse);
+                    console.log('User info:', userResponse);
+                }
                 if (friendsResponse) setFriendsList(friendsResponse.friends || []);
                 if (requestsResponse) {
                     setFriendRequests(requestsResponse.requests || []);
