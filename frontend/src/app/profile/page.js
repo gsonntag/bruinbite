@@ -201,7 +201,6 @@ export default function Profile() {
     // Only redirect after auth check is complete
     useEffect(() => {
         if (authChecked && !isLoggedIn) {
-            console.log('Not logged in, redirecting...');
             router.push('/');
         }
     }, [authChecked, isLoggedIn, router]);
@@ -216,17 +215,16 @@ export default function Profile() {
                 getOutgoingFriendRequests()
             ]).then(([userResponse, friendsResponse, requestsResponse, outgoingResponse]) => {
                 if (userResponse) {
-                    setUserInfo(userResponse);
-                    console.log('User info:', userResponse);
+                    // The API returns { user: {...} }, so we need to extract the user
+                    const userData = userResponse.user || userResponse;
+                    setUserInfo(userData);
                 }
                 if (friendsResponse) setFriendsList(friendsResponse.friends || []);
                 if (requestsResponse) {
                     setFriendRequests(requestsResponse.requests || []);
-                    console.log('Friend requests:', requestsResponse.requests);
                 }
                 if (outgoingResponse) {
                     setOutgoingFriendRequests(outgoingResponse.requests || []);
-                    console.log('Outgoing friend requests:', outgoingResponse.requests);
                 }
                 setLoading(false);
             }).catch(error => {
@@ -291,8 +289,6 @@ export default function Profile() {
     };
 
     const handleProfileUpdate = async (updatedUser) => {
-        console.log('Profile update received:', updatedUser);
-        
         // Update the local user info state
         setUserInfo(updatedUser);
         
@@ -300,8 +296,9 @@ export default function Profile() {
         try {
             const refreshedUserInfo = await getUserInfo();
             if (refreshedUserInfo) {
-                setUserInfo(refreshedUserInfo);
-                console.log('User info refreshed from server:', refreshedUserInfo);
+                // The API returns { user: {...} }, so we need to extract the user
+                const userData = refreshedUserInfo.user || refreshedUserInfo;
+                setUserInfo(userData);
             }
         } catch (error) {
             console.error('Error refreshing user info after update:', error);
