@@ -21,7 +21,9 @@ func GetCurUserInfoHandler(mgr *db.DBManager) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
 		}
-		c.JSON(http.StatusOK, user)
+		c.JSON(http.StatusOK, gin.H{
+			"user": user,
+		})
 	}
 }
 
