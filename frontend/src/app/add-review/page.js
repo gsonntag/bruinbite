@@ -313,9 +313,9 @@ export default function AddReview() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Use userInfo from API instead of localStorage directly
-        if (!userInfo) {
-            alert('Please try logging in again.');
+        const token = localStorage.getItem('jwt');
+        if (!token) {
+            alert('Please log in to submit a review.');
             router.push('/');
             return;
         }
@@ -350,7 +350,7 @@ export default function AddReview() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('jwt')}` // use proper JWT
+                    'Authorization': `Bearer ${token}` // use proper JWT
                 },
                 body: JSON.stringify(review)
             });
