@@ -20,6 +20,9 @@
 # production
 /build
 
+# bleve search index files
+backend/user_bleve_index/
+
 # misc
 .DS_Store
 *.pem
