@@ -13,7 +13,7 @@ const hallApiNameToFormName = {
   "bruin-cafe": "Bruin Cafe",
   "cafe-1919": "Cafe 1919",
   "epicuria-at-ackerman": "Epicuria at Ackerman",
-  rendezvous: "Rendezvous",
+  "rendezvous": "Rendezvous",
   "the-drey": "The Drey",
   "the-study-at-hedrick": "The Study at Hedrick",
   "spice-kitchen": "Spice Kitchen",
