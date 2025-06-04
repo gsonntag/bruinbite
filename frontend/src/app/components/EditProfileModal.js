@@ -174,7 +174,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
                     <div className="text-center">
                         <div className="mb-4">
                             {imagePreview ? (
-                                <Image
+                                <img
                                     src={imagePreview.startsWith('http') ? imagePreview : process.env.NEXT_PUBLIC_API_URL + `${imagePreview}`}
                                     alt="Profile preview"
                                     className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-200"

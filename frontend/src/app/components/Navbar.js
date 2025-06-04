@@ -128,7 +128,7 @@ export function Navbar() {
                                         className="flex items-center gap-2 px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300"
                                     >
                                         {userInfo?.profile_picture ? (
-                                            <Image
+                                            <img
                                                 src={process.env.NEXT_PUBLIC_API_URL + `${userInfo.profile_picture}`}
                                                 alt="Profile Picture"
                                                 className="h-8 w-8 rounded-full object-cover"
