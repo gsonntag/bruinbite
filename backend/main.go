@@ -49,10 +49,11 @@ func InitializeDatabase() error {
 
 func RegisterRoutes(router *gin.Engine) {
 
+	frontendUrl := os.Getenv("FRONTEND_URL")
 	// CORS is necessary so that frontend can communicate with backend.
 	// Otherwise, it will be viewed as a cross-origin request and will be blocked.
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // frontend URL
+		AllowOrigins:     []string{frontendUrl}, // frontend URL
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
