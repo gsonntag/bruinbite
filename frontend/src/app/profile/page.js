@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
-import { EditProfileModal } from '../components/EditProfileModal';
+import EditProfileModal from '../components/EditProfileModal';
 import { useRouter } from 'next/navigation';
 import { Image } from 'next/image';
 

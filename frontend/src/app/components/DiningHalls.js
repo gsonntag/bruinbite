@@ -1,7 +1,7 @@
 import { FaStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { Image } from 'next/image';
+import Image from 'next/image';
 import { hallApiNameToDisplayName, displayNameToApiName } from '../utils/hallMaps';
 
 // Image mapping for dining halls (since images aren't stored in database)
@@ -133,6 +133,8 @@ export default function DiningHalls() {
                             >
                                 <div className="md:w-48 h-48 md:h-auto">
                                     <Image
+                                        width={192}
+                                        height={192}
                                         src={hall.image}
                                         alt={hall.name}
                                         className="h-full w-full object-cover"

@@ -1,6 +1,7 @@
 "use client";
 export const dynamic = 'force-dynamic'; // skip pre-rendering in build
-import { useState, useEffect, useCallback, } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Navbar } from "../components/Navbar";
 import { RecommendedModal } from "../components/RecommendedModal";
 import { useRouter } from "next/navigation";
@@ -99,6 +100,7 @@ export default function Menus() {
 
   const getInitialHall = () => {
     if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
       const hallParam = urlParams.get("hall");
       if (hallParam && Object.keys(hallApiNameToFormName).includes(hallParam)) {
         return hallParam;
