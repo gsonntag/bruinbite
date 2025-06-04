@@ -47,9 +47,3 @@ An example of parsing this dictionary is:
 print(full_data['bruin-plate']['BREAKFAST']['Harvest'])
 ['Chayote, Tri-Tip & Egg Bowl', 'Scrambled Eggs', 'Scrambled Egg Whites', 'Vegan Scrambled Eggs', 'Roasted Red Breakfast Potato Wedges']
 ```
-
-## Known Bugs
-
-* Dining halls such as The Drey store their data under a single div called "breakfastmenu" which is misleading, because the actual text of that div is "Lunch / Dinner." We will have to address that dynamically
-* Food trucks require a special parsing due to different page layout
-* For some reason the scraper freezes when trying to scrape multiple pages, and appears to only unfreeze when you scroll down manually. This is an easy fix, but we should investigate if this is truly the root cause 
