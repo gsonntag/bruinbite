@@ -69,7 +69,28 @@ func GetDishDetailsHandler(mgr *db.DBManager) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "dish not found"})
 			return
 		}
+		hall, err := mgr.GetHallByID(dish.HallID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "hall info not found"})
+			return
+		}
 
-		c.JSON(http.StatusOK, gin.H{"dish": dish})
+		//use ts for search params
+		response := map[string]interface{}{
+			"id":             dish.ID,
+			"name":           dish.Name,
+			"description":    dish.Description,
+			"average_rating": dish.AverageRating,
+			"tags":           dish.Tags,
+			"location":       dish.Location,
+			"last_seen_date": dish.LastSeenDate,
+			"hall": map[string]interface{}{
+				"id":       hall.ID,
+				"name":     hall.Name,
+				"location": hall.Location,
+			},
+		}
+
+		c.JSON(http.StatusOK, gin.H{"dish": response})
 	}
 }
