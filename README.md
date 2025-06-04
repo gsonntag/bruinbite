@@ -1,5 +1,7 @@
 # CS 35L Project for Eggert Spring 2025
 
+https://github.com/user-attachments/assets/31de819a-ea03-45b9-b837-e3795513bf51
+
 # BruinBite
 
 BruinBite has a Next.js frontend, Go backend, and PostgreSQL database.
