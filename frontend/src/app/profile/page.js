@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
 import EditProfileModal from '../components/EditProfileModal';
 import { useRouter } from 'next/navigation';
-import { Image } from 'next/image';
-
 
 // get user info from api
 function getUserInfo() {
@@ -327,7 +325,7 @@ export default function Profile() {
         <div className="bg-white rounded-lg shadow-md p-6">
             <div className="text-center mb-6">
                 {userInfo?.profile_picture ? (
-                    <Image
+                    <img
                         src={process.env.NEXT_PUBLIC_API_URL + `${userInfo.profile_picture}`}
                         alt="Profile"
                         className="h-24 w-24 rounded-full mx-auto mb-4 object-cover border-4 border-gray-200"
@@ -378,7 +376,7 @@ export default function Profile() {
                         <div key={friend.ID} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                             <div className="flex items-center space-x-3">
                                 {friend.profile_picture ? (
-                                    <Image
+                                    <img
                                         src={process.env.NEXT_PUBLIC_API_URL + `${friend.profile_picture}`}
                                         alt={friend.username}
                                         className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
@@ -419,7 +417,7 @@ export default function Profile() {
                         <div key={request.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-center space-x-3">
                                 {request.from_user.profile_picture ? (
-                                    <Image
+                                    <img
                                         src={process.env.NEXT_PUBLIC_API_URL + `${request.from_user.profile_picture}`}
                                         alt={request.from_user.username}
                                         className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
@@ -480,7 +478,7 @@ export default function Profile() {
                                 <div key={user.ID} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                     <div className="flex items-center space-x-3">
                                         {user.profile_picture ? (
-                                            <Image
+                                            <img
                                                 src={process.env.NEXT_PUBLIC_API_URL + `${user.profile_picture}`}
                                                 alt={user.username}
                                                 className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
