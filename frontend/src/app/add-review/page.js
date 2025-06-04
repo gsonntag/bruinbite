@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import { useState, useEffect, Suspense } from 'react';
+import { Navbar } from '../components/Navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // Same mappings as in menus page
@@ -93,12 +93,20 @@ function getCurrentMealPeriod() {
 }
 
 export default function AddReview() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading…</div>}>
+            <AddReviewContent />
+        </Suspense>
+    )
+}
+
+function AddReviewContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const today = new Date();
     
     // Check if we're coming from menus page with specific dish
-    const isFromMenus = searchParams.get('step') === '3';
+    const isFromMenus = searchParams.get('step') === '3'
     const [currentStep, setCurrentStep] = useState(isFromMenus ? 3 : 1);
     
     // Authentication state (same as profile/page.js)

@@ -2,12 +2,12 @@
 import { useState, useEffect, useRef } from 'react';
 import LoginForm from './LoginForm';
 import Link from 'next/link';
-import Image from 'next/image';
 import { logout } from '../services/auth';
 import toast from 'react-hot-toast';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
-export default function Navbar() {
+export function Navbar() {
     const [showLoginForm, setShowLoginForm] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -128,7 +128,7 @@ export default function Navbar() {
                                         className="flex items-center gap-2 px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300"
                                     >
                                         {userInfo?.profile_picture ? (
-                                            <img
+                                            <Image
                                                 src={`http://localhost:8080${userInfo.profile_picture}`}
                                                 alt="Profile Picture"
                                                 className="h-8 w-8 rounded-full object-cover"

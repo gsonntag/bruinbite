@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Navbar from '../../components/Navbar';
-import Rating from '../../components/Rating';
+import { Navbar } from '../../components/Navbar';
+import { Rating } from '../../components/Rating';
 import { useParams, useRouter } from 'next/navigation';
 
 
