@@ -1,6 +1,0 @@
-How to get backend up and running:
-
-Install Postgres (on macOS, I have homebrew so I installed postgresql and docker-compose and am running it that way), setup a database and user, fill in the username in ./backend/db.env
-
-Use `go run main.go`!
-You can ping the test gateway with `curl http://localhost:8080/ping`
