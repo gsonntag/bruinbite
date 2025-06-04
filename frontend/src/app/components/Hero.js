@@ -48,7 +48,7 @@ export default function Hero() {
 
             try {
                 // Build search URL with optional hall filter
-                let searchUrl = `http://localhost:8080/search?keyword=${encodeURIComponent(query)}`;
+                let searchUrl = process.env.NEXT_PUBLIC_API_URL + `/search?keyword=${encodeURIComponent(query)}`;
                 if (selectedHall) {
                     // Map the selected hall value to the actual database hall name
                     const actualHallName = hallValueToApiName[selectedHall];

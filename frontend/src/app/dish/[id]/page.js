@@ -19,8 +19,8 @@ export default function DishDetail() {
       try {
         //two endpoitns - one for ratings and other for fetching dish info
         const [ratingsResponse, dishResponse] = await Promise.all([
-          fetch(`http://localhost:8080/dishratings?dish_id=${dishId}`),
-          fetch(`http://localhost:8080/dish/${dishId}`),
+          fetch(process.env.NEXT_PUBLIC_API_URL + `/dishratings?dish_id=${dishId}`),
+          fetch(process.env.NEXT_PUBLIC_API_URL + `/dish/${dishId}`),
         ]);
 
         if (!dishResponse.ok) {

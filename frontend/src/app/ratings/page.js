@@ -9,7 +9,7 @@ function getUserRatings() {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/userratings', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/userratings', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,

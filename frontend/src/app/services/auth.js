@@ -1,7 +1,6 @@
-const API_BASE = "http://localhost:8080";
 
 export async function signup(username, email, password) {
-    const res = await fetch(`${API_BASE}/signup`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -16,7 +15,7 @@ export async function signup(username, email, password) {
 }
 
 export async function login(username, password) {
-    const res = await fetch(`${API_BASE}/login`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

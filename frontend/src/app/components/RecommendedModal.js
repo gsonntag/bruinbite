@@ -18,7 +18,7 @@ export function RecommendedModal({ isOpen, onClose }) {
                 return;
             }
 
-            const response = await fetch('http://localhost:8080/recommended', {
+            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/recommended', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,

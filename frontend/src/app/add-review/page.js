@@ -31,7 +31,7 @@ function getUserInfo() {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/userinfo', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/userinfo', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -49,7 +49,7 @@ function getUserInfo() {
 // get valid meal periods for a certain day given a hall
 async function getMealPeriods(hall_name, month, day, year) {
     const res = await fetch(
-        `http://localhost:8080/hall-meal-periods?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}`
+        process.env.NEXT_PUBLIC_API_URL + `/hall-meal-periods?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}`
     );
     if (!res.ok) throw new Error('Failed to fetch meal periods');
     return res.json();
@@ -57,7 +57,7 @@ async function getMealPeriods(hall_name, month, day, year) {
 
 // get menu from api to show dishes for selection
 async function getMenu(hall_name, month, day, year, meal_period) {
-    const response = await fetch(`http://localhost:8080/menu?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`);
+    const response = await fetch(process.env.NEXT_PUBLIC_API_URL + `/menu?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`);
     if (!response.ok) {
         throw new Error('Failed to fetch menu');
     }
@@ -354,7 +354,7 @@ function AddReviewContent() {
                 alert('Review comment cannot exceed 500 characters.');
                 return;
             }
-            const response = await fetch('http://localhost:8080/ratings', {
+            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/ratings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

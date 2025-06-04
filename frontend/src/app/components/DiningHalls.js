@@ -47,7 +47,7 @@ export default function DiningHalls() {
     useEffect(() => {
         const fetchDiningHalls = async () => {
             try {
-                const response = await fetch('http://localhost:8080/dining-halls');
+                const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/dining-halls');
                 if (!response.ok) {
                     throw new Error('Failed to fetch dining halls');
                 }

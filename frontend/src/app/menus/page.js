@@ -31,7 +31,7 @@ const mealPeriodNames = {
 // get valid meal periods for a certain day given a hall
 async function getMealPeriods(hall_name, month, day, year) {
   const res = await fetch(
-    `http://localhost:8080/hall-meal-periods?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}`
+    process.env.NEXT_PUBLIC_API_URL + `/hall-meal-periods?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}`
   );
   if (!res.ok) throw new Error("Failed to fetch meal periods");
   return res.json(); // ← expected to return string[] like ["BREAKFAST","LUNCH"]
@@ -40,7 +40,7 @@ async function getMealPeriods(hall_name, month, day, year) {
 // get menu from api
 async function getMenu(hall_name, month, day, year, meal_period) {
   const response = await fetch(
-    `http://localhost:8080/menu?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`
+    process.env.NEXT_PUBLIC_API_URL + `/menu?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`
   );
   if (!response.ok) {
     throw new Error("Failed to fetch menu");
