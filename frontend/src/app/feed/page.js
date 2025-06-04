@@ -10,7 +10,7 @@ const getFriendRatings = () => {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/friendratings', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/friendratings', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,

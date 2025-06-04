@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Navbar from "../../components/Navbar";
+import { Navbar } from "../../components/Navbar";
 import { getDisplayName } from "../../utils/hallMaps";
+import Rating from "../../components/Rating";
 
 export default function DishDetail() {
   const params = useParams();
@@ -18,8 +19,8 @@ export default function DishDetail() {
       try {
         //two endpoitns - one for ratings and other for fetching dish info
         const [ratingsResponse, dishResponse] = await Promise.all([
-          fetch(`http://localhost:8080/dishratings?dish_id=${dishId}`),
-          fetch(`http://localhost:8080/dish/${dishId}`),
+          fetch(process.env.NEXT_PUBLIC_API_URL + `/dishratings?dish_id=${dishId}`),
+          fetch(process.env.NEXT_PUBLIC_API_URL + `/dish/${dishId}`),
         ]);
 
         if (!dishResponse.ok) {
@@ -156,38 +157,8 @@ export default function DishDetail() {
 
           {dishRatings.length > 0 ? (
             <div className="space-y-4">
-              {dishRatings.map((rating) => (
-                <div
-                  key={rating.id}
-                  className="border-b border-gray-200 pb-4 last:border-b-0"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-800 mr-2">
-                        {rating.user.first_name} {rating.user.last_name}
-                      </span>
-                      <div className="flex items-center bg-blue-50 px-2 py-1 rounded-md">
-                        <span className="text-yellow-500 mr-1">★</span>
-                        <span className="text-sm font-medium text-blue-700">
-                          {rating.score}/5
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {new Date(rating.created_at).toLocaleDateString()} at{" "}
-                      {new Date(rating.created_at).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-
-                  {rating.comment && (
-                    <p className="text-gray-700 mt-2 italic">
-                      &quot;{rating.comment}&quot;
-                    </p>
-                  )}
-                </div>
+              {dishRatings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((rating) => (
+                <Rating key={rating.id} rating={rating} />
               ))}
             </div>
           ) : (

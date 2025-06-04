@@ -89,7 +89,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
             }
 
             console.log('Sending PUT request to /profile...');
-            const response = await fetch('http://localhost:8080/profile', {
+            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/profile', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -175,7 +175,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
                         <div className="mb-4">
                             {imagePreview ? (
                                 <Image
-                                    src={imagePreview.startsWith('http') ? imagePreview : `http://localhost:8080${imagePreview}`}
+                                    src={imagePreview.startsWith('http') ? imagePreview : process.env.NEXT_PUBLIC_API_URL + `${imagePreview}`}
                                     alt="Profile preview"
                                     className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-200"
                                 />

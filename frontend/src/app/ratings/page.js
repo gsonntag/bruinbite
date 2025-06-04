@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import { Navbar } from '../components/Navbar';
 import { useRouter } from 'next/navigation';
 
 
@@ -9,7 +9,7 @@ function getUserRatings() {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/userratings', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/userratings', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,

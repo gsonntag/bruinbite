@@ -8,7 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 // get user info from api
 function getUserInfo(username) {
-    return fetch(`http://localhost:8080/user/${username}`, {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + `/user/${username}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -24,7 +24,7 @@ function getUserInfo(username) {
 
 // get user ratings from api
 function getUserRatings(username) {
-    return fetch(`http://localhost:8080/user/${username}/ratings`, {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + `/user/${username}/ratings`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'

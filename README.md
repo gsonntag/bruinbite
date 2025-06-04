@@ -56,7 +56,9 @@ The backend server will start on `http://localhost:8080`, and automatically popu
    npm install
    ```
 
-3. Start the development server:
+3. Edit .env.local file if necessary, stored at ./frontend/.env.local
+
+4. Start the development server:
    ```bash
    npm run dev
    ```

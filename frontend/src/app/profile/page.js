@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
-import { EditProfileModal } from '../components/EditProfileModal';
+import EditProfileModal from '../components/EditProfileModal';
 import { useRouter } from 'next/navigation';
 import { Image } from 'next/image';
 
@@ -12,7 +12,7 @@ function getUserInfo() {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/userinfo', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/userinfo', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -33,7 +33,7 @@ function getFriendsList() {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/friends', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/friends', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -55,7 +55,7 @@ function getFriendRequests() {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/in-friend-requests', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/in-friend-requests', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -76,7 +76,7 @@ function getOutgoingFriendRequests() {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/out-friend-requests', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/out-friend-requests', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -97,7 +97,7 @@ function acceptFriendRequest(requestId) {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/accept-friend-request', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/accept-friend-request', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -119,7 +119,7 @@ function declineFriendRequest(requestId) {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/decline-friend-request', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/decline-friend-request', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -141,7 +141,7 @@ function sendFriendRequest(userId) {
     if (!token) {
         return null;
     }
-    return fetch('http://localhost:8080/send-friend-request', {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + '/send-friend-request', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -163,7 +163,7 @@ function searchUsers(keyword) {
     if (!token) {
         return null;
     }
-    return fetch(`http://localhost:8080/search-users?username=${encodeURIComponent(keyword)}`, {
+    return fetch(process.env.NEXT_PUBLIC_API_URL + `/search-users?username=${encodeURIComponent(keyword)}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -328,7 +328,7 @@ export default function Profile() {
             <div className="text-center mb-6">
                 {userInfo?.profile_picture ? (
                     <Image
-                        src={`http://localhost:8080${userInfo.profile_picture}`}
+                        src={process.env.NEXT_PUBLIC_API_URL + `${userInfo.profile_picture}`}
                         alt="Profile"
                         className="h-24 w-24 rounded-full mx-auto mb-4 object-cover border-4 border-gray-200"
                     />
@@ -379,7 +379,7 @@ export default function Profile() {
                             <div className="flex items-center space-x-3">
                                 {friend.profile_picture ? (
                                     <Image
-                                        src={`http://localhost:8080${friend.profile_picture}`}
+                                        src={process.env.NEXT_PUBLIC_API_URL + `${friend.profile_picture}`}
                                         alt={friend.username}
                                         className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
                                     />
@@ -420,7 +420,7 @@ export default function Profile() {
                             <div className="flex items-center space-x-3">
                                 {request.from_user.profile_picture ? (
                                     <Image
-                                        src={`http://localhost:8080${request.from_user.profile_picture}`}
+                                        src={process.env.NEXT_PUBLIC_API_URL + `${request.from_user.profile_picture}`}
                                         alt={request.from_user.username}
                                         className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
                                     />
@@ -481,7 +481,7 @@ export default function Profile() {
                                     <div className="flex items-center space-x-3">
                                         {user.profile_picture ? (
                                             <Image
-                                                src={`http://localhost:8080${user.profile_picture}`}
+                                                src={process.env.NEXT_PUBLIC_API_URL + `${user.profile_picture}`}
                                                 alt={user.username}
                                                 className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
                                             />

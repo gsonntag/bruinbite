@@ -29,7 +29,7 @@ export function Navbar() {
     const fetchUserInfo = async () => {
         try {
             const token = localStorage.getItem('jwt');
-            const response = await fetch('http://localhost:8080/userinfo', {
+            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/userinfo', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -129,7 +129,7 @@ export function Navbar() {
                                     >
                                         {userInfo?.profile_picture ? (
                                             <Image
-                                                src={`http://localhost:8080${userInfo.profile_picture}`}
+                                                src={process.env.NEXT_PUBLIC_API_URL + `${userInfo.profile_picture}`}
                                                 alt="Profile Picture"
                                                 className="h-8 w-8 rounded-full object-cover"
                                             />
