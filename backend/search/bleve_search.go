@@ -210,6 +210,7 @@ func (m *BleveSearchManager) SearchDishes(queryString string, hallFilter string,
 	if hallFilter != "" {
 		hallQuery := bleve.NewMatchQuery(hallFilter)
 		hallQuery.SetField("hall_name")
+		hallQuery.SetOperator(query.MatchQueryOperatorAnd)
 
 		// Combine with conjunction (AND)
 		finalQuery = bleve.NewConjunctionQuery(queryDisjunction, hallQuery)
