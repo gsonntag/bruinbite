@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 	"sort"
-	"time"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gsonntag/bruinbite/db"
@@ -38,7 +38,7 @@ type RecommendedHallQuery struct {
 func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, err := strconv.Atoi(c.GetString("userId"))
-		
+
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
 			return
@@ -63,7 +63,7 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 		}
 
 		dishIDs := make([]uint, 0, 64)
-		for _, m := range(menus) {
+		for _, m := range menus {
 			for _, d := range m.Dishes {
 				dishIDs = append(dishIDs, d.ID)
 			}
@@ -81,10 +81,10 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 		}
 
 		type hallResult struct {
-			Hall models.DiningHall `json:"hall"`
-			Score float64 `json:"score"`
-			Basis string `json:"basis"`
-			TopDishes []models.Dish `json:"top_dishes"`
+			Hall      models.DiningHall `json:"hall"`
+			Score     float64           `json:"score"`
+			Basis     string            `json:"basis"`
+			TopDishes []models.Dish     `json:"top_dishes"`
 		}
 
 		var results []hallResult
@@ -94,20 +94,28 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 			}
 
 			var consensusSum, userSum float64
-			var userCount int
+			var userCount, consensusCount int
 			for _, dish := range menu.Dishes {
+				if dish.AverageRating == 0 {
+					continue
+				}
 				consensusSum += dish.AverageRating
+				consensusCount++
 				if userScore, ok := userRatingMap[dish.ID]; ok {
 					userSum += userScore
 					userCount++
 				}
 			}
-			consensusSum /= float64(len(menu.Dishes))
+			if consensusCount == 0 {
+				consensusSum = 0
+			} else {
+				consensusSum /= float64(consensusCount)
+			}
 			finalScore := consensusSum
 			basis := "consensus"
 			if userCount > 0 {
 				userSum /= float64(userCount)
-				finalScore = (2*userSum+consensusSum)/3
+				finalScore = (2*userSum + consensusSum) / 3
 				basis = "user,consensus"
 			}
 
@@ -118,9 +126,9 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 
 			sort.Slice(menu.Dishes, func(i, j int) bool {
 				if menu.Dishes[i].AverageRating == menu.Dishes[j].AverageRating {
-					return menu.Dishes[i].ID < menu.Dishes[j].ID // tie breaker
+					return menu.Dishes[i].ID > menu.Dishes[j].ID // tie breaker
 				}
-				return menu.Dishes[i].AverageRating < menu.Dishes[j].AverageRating
+				return menu.Dishes[i].AverageRating > menu.Dishes[j].AverageRating
 			})
 
 			topCount := 3
@@ -133,9 +141,9 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 			}
 
 			results = append(results, hallResult{
-				Hall: hall,
-				Score: finalScore,
-				Basis: basis,
+				Hall:      hall,
+				Score:     finalScore,
+				Basis:     basis,
 				TopDishes: topDishes,
 			})
 		}
@@ -169,7 +177,7 @@ func GetMealPeriodForHall(hallName, mealPeriod string) string {
 		return "LUNCH_DINNER"
 	}
 	return mealPeriod
-} 
+}
 
 func GetAllowedMealPeriods(now time.Time) []string {
 	mealPeriod := GetActualMealPeriod(now.Hour())
@@ -192,7 +200,7 @@ func GetActualMealPeriod(hour int) string {
 		return "LUNCH"
 	} else if hour > 17 && hour < 21 {
 		return "DINNER"
-	} else if hour > 21 {
+	} else if hour < 2 || hour > 21 {
 		return "LATE_NIGHT"
 	}
 	return "NONE"
