@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
 import { useRouter } from 'next/navigation';
 import Rating from '../components/Rating';
+import { api } from '../utils/api'
 
 
 const getFriendRatings = () => {
@@ -10,13 +11,7 @@ const getFriendRatings = () => {
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/friendratings', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get('/friendratings', token)
     .then(response => {
         if (!response.ok) {
             throw new Error('Failed to fetch friend ratings');

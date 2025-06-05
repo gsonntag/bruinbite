@@ -82,7 +82,7 @@ export default function LoginForm({ onClose, onLoginSuccess }) {
       } else if (error.message.includes('invalid username/password')) {
         setError('Invalid email or password.');
       } else {
-        setError(error.message || 'An error occurred. Please try again later.');
+        setError(`Internal Server Error: ${error.message}` || 'An error occurred. Please try again later.');
       }
     }
     console.log('Form submitted:', formData);

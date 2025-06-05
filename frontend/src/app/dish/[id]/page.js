@@ -4,11 +4,12 @@ import { useParams, useRouter } from "next/navigation";
 import { Navbar } from "../../components/Navbar";
 import { getDisplayName } from "../../utils/hallMaps";
 import Rating from "../../components/Rating";
+import { api } from '../../utils/api'
 
 export default function DishDetail() {
   const params = useParams();
   const router = useRouter();
-  const dishId = params.id;
+  const dish_id = params.id;
 
   const [dishRatings, setDishRatings] = useState([]);
   const [dishInfo, setDishInfo] = useState(null);
@@ -19,8 +20,8 @@ export default function DishDetail() {
       try {
         //two endpoitns - one for ratings and other for fetching dish info
         const [ratingsResponse, dishResponse] = await Promise.all([
-          fetch(process.env.NEXT_PUBLIC_API_URL + `/dishratings?dish_id=${dishId}`),
-          fetch(process.env.NEXT_PUBLIC_API_URL + `/dish/${dishId}`),
+          api.get('/dishratings', {dish_id}),
+          api.get('/dish', {dish_id})
         ]);
 
         if (!dishResponse.ok) {
@@ -42,10 +43,10 @@ export default function DishDetail() {
       }
     };
 
-    if (dishId) {
+    if (dish_id) {
       fetchDishData();
     }
-  }, [dishId]);
+  }, [dish_id]);
 
   //use error handning bc user could go to a slug that doesn't exist
   if (error) {

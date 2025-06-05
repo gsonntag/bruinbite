@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Image } from 'next/image';
+import { api } from '../utils/api'
 import toast from 'react-hot-toast';
 
 export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }) {
@@ -90,15 +90,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
             }
 
             console.log('Sending PUT request to /profile...');
-            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/profile', {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-            });
-
+            const response = api.put('/profile', requestData, token)
             console.log('Response status:', response.status);
             
             if (!response.ok) {

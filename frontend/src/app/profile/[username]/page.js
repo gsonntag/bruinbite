@@ -3,17 +3,11 @@ import { useState, useEffect } from 'react';
 import { Navbar } from '../../components/Navbar';
 import { Rating } from '../../components/Rating';
 import { useParams, useRouter } from 'next/navigation';
-
-
+import { api } from '../../utils/api'
 
 // get user info from api
 function getUserInfo(username) {
-    return fetch(process.env.NEXT_PUBLIC_API_URL + `/user/${username}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get(`/user/${username}`)
     .then(response => {
         if (!response.ok) {
             throw new Error('Failed to fetch user info');
@@ -24,12 +18,7 @@ function getUserInfo(username) {
 
 // get user ratings from api
 function getUserRatings(username) {
-    return fetch(process.env.NEXT_PUBLIC_API_URL + `/user/${username}/ratings`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get(`/user/${username}/ratings`)
     .then(response => {
         if (!response.ok) {
             throw new Error('Failed to fetch user ratings');

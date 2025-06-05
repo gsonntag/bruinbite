@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { hallApiNameToDisplayName, displayNameToApiName } from '../utils/hallMaps';
+import { api } from '../utils/api'
 
 // Image mapping for dining halls (since images aren't stored in database)
 const diningHallImages = {
@@ -47,8 +48,9 @@ export default function DiningHalls() {
     useEffect(() => {
         const fetchDiningHalls = async () => {
             try {
-                const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/dining-halls');
+                const response = await api.get('/dining-halls')
                 if (!response.ok) {
+                    console.log(response)
                     throw new Error('Failed to fetch dining halls');
                 }
                 const data = await response.json();

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
 import EditProfileModal from '../components/EditProfileModal';
 import { useRouter } from 'next/navigation';
+import { api } from '../utils/api'
 
 // get user info from api
 function getUserInfo() {
@@ -10,13 +11,7 @@ function getUserInfo() {
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/userinfo', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get('/userinfo', token)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch user info');
@@ -31,13 +26,7 @@ function getFriendsList() {
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/friends', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get('/friends', token)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch friends list');
@@ -53,13 +42,7 @@ function getFriendRequests() {
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/in-friend-requests', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get('/in-friend-requests', token)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch friend requests');
@@ -74,13 +57,7 @@ function getOutgoingFriendRequests() {
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/out-friend-requests', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get('/out-friend-requests', token)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch friend requests');
@@ -90,19 +67,12 @@ function getOutgoingFriendRequests() {
 }
 
 // Accept friend request
-function acceptFriendRequest(requestId) {
+function acceptFriendRequest(request_id) {
     const token = localStorage.getItem('jwt');
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/accept-friend-request', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ request_id: requestId })
-    })
+    return api.post('/accept-friend-request', token, {request_id})
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to accept friend request');
@@ -112,19 +82,12 @@ function acceptFriendRequest(requestId) {
 }
 
 // Decline friend request
-function declineFriendRequest(requestId) {
+function declineFriendRequest(request_id) {
     const token = localStorage.getItem('jwt');
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/decline-friend-request', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ request_id: requestId })
-    })
+    return api.post('/decline-friend-request', token, {request_id})
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to decline friend request');
@@ -134,19 +97,12 @@ function declineFriendRequest(requestId) {
 }
 
 // send friend request
-function sendFriendRequest(userId) {
+function sendFriendRequest(friend_id) {
     const token = localStorage.getItem('jwt');
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/send-friend-request', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ friend_id: userId })
-    })
+    return api.post('/send-friend-request', token, {friend_id})
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to send friend request');
@@ -161,13 +117,8 @@ function searchUsers(keyword) {
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + `/search-users?username=${encodeURIComponent(keyword)}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    const username = encodeURIComponent(keyword)
+    return api.get('/search-users', token, {username})
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to search for users');

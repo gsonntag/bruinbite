@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '../utils/hallMaps';
+import { api } from '../utils/api'
 
 export function RecommendedModal({ isOpen, onClose }) {
     const [recHallsData, setRecHallsData] = useState([]);
@@ -18,13 +19,7 @@ export function RecommendedModal({ isOpen, onClose }) {
                 return;
             }
 
-            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/recommended', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await api.get('/recommended', token)
 
             if (!response.ok) {
                 if (response.status === 401) {

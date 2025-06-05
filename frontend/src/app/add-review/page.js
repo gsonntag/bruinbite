@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { Navbar } from '../components/Navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { api } from '../utils/api'
 import toast from 'react-hot-toast';
 
 // Same mappings as in menus page
@@ -32,13 +33,7 @@ function getUserInfo() {
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/userinfo', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get('/userinfo', token)
     .then(response => {
         if (!response.ok) {
             throw new Error('Failed to fetch user info');
@@ -49,16 +44,25 @@ function getUserInfo() {
 
 // get valid meal periods for a certain day given a hall
 async function getMealPeriods(hall_name, month, day, year) {
-    const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + `/hall-meal-periods?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}`
-    );
-    if (!res.ok) throw new Error('Failed to fetch meal periods');
-    return res.json();
+    const response = await api.get('/hall-meal-periods', null, {
+        hall_name,
+        month,
+        day,
+        year
+    })
+    if (!response.ok) throw new Error('Failed to fetch meal periods');
+    return response.json();
 }
 
 // get menu from api to show dishes for selection
 async function getMenu(hall_name, month, day, year, meal_period) {
-    const response = await fetch(process.env.NEXT_PUBLIC_API_URL + `/menu?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`);
+    const response = await api.get('/menu', null, {
+        hall_name,
+        month,
+        day,
+        year,
+        meal_period
+    })
     if (!response.ok) {
         throw new Error('Failed to fetch menu');
     }
@@ -354,14 +358,7 @@ function AddReviewContent() {
                 toast.error('Review comment cannot exceed 500 characters.');
                 return;
             }
-            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/ratings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // use proper JWT
-                },
-                body: JSON.stringify(review)
-            });
+            const response = await api.post('/ratings', token, review)
 
             console.log('SUBMISSION DATA WITH AUTHENTICATED USER:', review);
             if (!response.ok) {
