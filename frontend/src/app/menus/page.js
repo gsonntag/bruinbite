@@ -6,6 +6,7 @@ import { Navbar } from "../components/Navbar";
 import { RecommendedModal } from "../components/RecommendedModal";
 import { useRouter } from "next/navigation";
 import { api } from '../utils/api'
+import toast from 'react-hot-toast';
 
 // TODO: possibly dynamically get the hall names from the API
 const hallApiNameToFormName = {
@@ -166,7 +167,7 @@ export default function Menus() {
       } catch (error) {
         console.error("Error fetching menu:", error);
         // pop a toast
-        alert("Error fetching menu. Please try again later.");
+        toast.error("Error fetching menu. Please try again later.");
       } finally {
         setLoading(false);
       }

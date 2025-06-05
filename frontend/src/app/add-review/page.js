@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { Navbar } from '../components/Navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../utils/api'
+import toast from 'react-hot-toast';
 
 // Same mappings as in menus page
 const hallApiNameToFormName = {
@@ -273,7 +274,7 @@ function AddReviewContent() {
                 setCurrentStep(2);
             } catch (error) {
                 console.error('Error fetching menu:', error);
-                alert('Error loading menu. Please try again.');
+                toast.error('Error loading menu. Please try again.');
             } finally {
                 setLoading(false);
             }
@@ -327,7 +328,7 @@ function AddReviewContent() {
         
         const token = localStorage.getItem('jwt');
         if (!token) {
-            alert('Please log in to submit a review.');
+            toast.error('Please log in to submit a review.');
             router.push('/');
             return;
         }
@@ -343,19 +344,18 @@ function AddReviewContent() {
 
         console.log('REVIEWS TO SUBMIT:', allReviews);
          
-
         // send to server, one review per dish
         for (const review of allReviews) {
             if (review.score == null) {
-                alert('Please provide a rating for all selected dishes.');
+                toast.error('Please provide a rating for all selected dishes.');
                 return;
             }
             if (review.score < 1 || review.score > 5) {
-                alert('Rating must be between 1 and 5 stars.');
+                toast.error('Rating must be between 1 and 5 stars.');
                 return;
             }
             if (review.comment.length > 500) {
-                alert('Review comment cannot exceed 500 characters.');
+                toast.error('Review comment cannot exceed 500 characters.');
                 return;
             }
             const response = await api.post('/ratings', token, review)
@@ -364,14 +364,14 @@ function AddReviewContent() {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Error submitting review:', errorData);
-                alert(`Failed to submit review: ${errorData.message || 'Unknown error'}`);
+                toast.error(`Failed to submit review: ${errorData.message || 'Unknown error'}`);
                 return;
             }
         }
 
         // successful submission
         setTimeout(() => {
-            alert('Review submitted successfully! \n\nRedirecting to home page...');
+            toast.success('Review submitted successfully! Redirecting to home page...');
             router.push('/');
         }, 1000);
     };
@@ -589,19 +589,24 @@ function AddReviewContent() {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Rating (1-5 stars) *
                                     </label>
-                                    <select
-                                        value={reviewData.dishReviews[dish.id]?.rating || ''}
-                                        onChange={(e) => handleIndividualReviewChange(dish.id, 'rating', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    >
-                                        <option value="">Select a rating</option>
-                                        <option value="1">1 star - Poor</option>
-                                        <option value="2">2 stars - Fair</option>
-                                        <option value="3">3 stars - Good</option>
-                                        <option value="4">4 stars - Very Good</option>
-                                        <option value="5">5 stars - Excellent</option>
-                                    </select>
+                                        {[1, 2, 3, 4, 5].map((starval) => {
+                                             const currRate = reviewData.dishReviews[dish.id]?.rating || '';
+                                             const isSelected = starval <= parseInt(currRate || '0');
+                                             
+                                             
+                                             return (
+                                                 <button
+                                                     key={starval}
+                                                     type="button"
+                                                     onClick={() => handleIndividualReviewChange(dish.id, 'rating', starval.toString())}
+                                                     className={`mr-1 text-2xl cursor-pointer hover:scale-105 transition-transform ${
+                                                         isSelected ? 'text-yellow-500' : 'text-zinc-300'
+                                                     }`}
+                                                 >
+                                                     ★
+                                                 </button>
+                                             );
+                                         })}
                                 </div>
 
                                 <div>

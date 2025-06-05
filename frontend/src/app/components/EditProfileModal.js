@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '../utils/api'
+import toast from 'react-hot-toast';
 
 export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }) {
     const [formData, setFormData] = useState({
@@ -121,7 +122,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
             setError(null);
             
             // Show success message briefly
-            alert('Profile updated successfully!');
+            toast.success('Profile updated successfully!');
             
             // Close the modal
             onClose();
