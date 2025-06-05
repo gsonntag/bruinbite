@@ -6,6 +6,7 @@ import { logout } from '../services/auth';
 import toast from 'react-hot-toast';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { api } from '../utils/api'
 
 export function Navbar() {
     const [showLoginForm, setShowLoginForm] = useState(false);
@@ -29,14 +30,7 @@ export function Navbar() {
     const fetchUserInfo = async () => {
         try {
             const token = localStorage.getItem('jwt');
-            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/userinfo', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
+            const response = await api.get('/userinfo', token, null)
             if (response.ok) {
                 const data = await response.json();
                 // Handle both response formats: { user: {...} } or direct user object
