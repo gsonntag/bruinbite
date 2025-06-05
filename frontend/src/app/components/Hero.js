@@ -50,16 +50,15 @@ export default function Hero() {
             try {
                 // Build search URL with optional hall filter
                 let keyword = encodeURIComponent(query);
-                let hall_name = null;
+                let hall = null;
                 if (selectedHall) {
                     // Map the selected hall value to the actual database hall name
                     const actualHallName = hallValueToApiName[selectedHall];
                     if (actualHallName) {
-                        hall_name = encodeURIComponent(actualHallName)
+                        hall = encodeURIComponent(actualHallName)
                     }
-                }
-                
-                const response = hall_name ? api.get('/search', token, {keyword, hall_name}) : api.get('/search', token, {keyword});
+                }  
+                const response = hall ? await api.get('/search', null, {keyword, hall}) : await api.get('/search', null, {keyword});
                 if (!response.ok) {
                     throw new Error("search failed");
                 }
