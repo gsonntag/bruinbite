@@ -20,7 +20,7 @@ export default function DishDetail() {
       try {
         //two endpoitns - one for ratings and other for fetching dish info
         const [ratingsResponse, dishResponse] = await Promise.all([
-          api.get(`/dishratings/${dish_id}`),
+          api.get('/dishratings', null, {dish_id}),
           api.get(`/dish/${dish_id}`)
         ]);
 
