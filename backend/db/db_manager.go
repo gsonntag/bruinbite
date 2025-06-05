@@ -3,6 +3,8 @@ package db
 import (
 	"errors"
 	"fmt"
+	"log"
+	"math"
 	"regexp"
 	"time"
 
@@ -262,47 +264,12 @@ func (m *DBManager) CreateRating(rating *models.Rating) error {
 }
 
 func (m *DBManager) CreateMultipleRatings(ratings []models.Rating) error {
-	if len(ratings) == 0 {
-		return nil
-	}
-
-	// Track unique DishIDs
-	affectedDishIDs := make(map[uint]bool)
-	for _, r := range ratings {
-		affectedDishIDs[r.DishID] = true
-	}
-
-	// Bulk insert ratings
-	if err := m.DB.Create(&ratings).Error; err != nil {
-		return fmt.Errorf("failed to insert ratings: %w", err)
-	}
-
-	// Update average rating for each affected dish
-	for dishID := range affectedDishIDs {
-		var dish models.Dish
-		if err := m.DB.First(&dish, dishID).Error; err != nil {
-			return fmt.Errorf("could not find dish with ID %d: %w", dishID, err)
-		}
-
-		// Get updated total score and count
-		var totalScore float64
-		var totalCount int64
-		if err := m.DB.Model(&models.Rating{}).
-			Where("dish_id = ?", dishID).
-			Select("SUM(score), COUNT(*)").
-			Scan(&struct {
-				Sum   *float64
-				Count *int64
-			}{&totalScore, &totalCount}).Error; err != nil {
-			return fmt.Errorf("failed to compute average for dish ID %d: %w", dishID, err)
-		}
-
-		dish.AverageRating = totalScore / float64(totalCount)
-		if err := m.DB.Save(&dish).Error; err != nil {
-			return fmt.Errorf("failed to update dish average rating for dish ID %d: %w", dishID, err)
+	for _, rating := range ratings {
+		err := m.CreateRating(&rating)
+		if err != nil {
+			return err
 		}
 	}
-
 	return nil
 }
 
@@ -418,6 +385,19 @@ func (m *DBManager) GetMenuByHallNameAndDate(hallName string, date models.Date) 
 	if err != nil {
 		return nil, err
 	}
+
+	// from a bug where this was happening
+	for _, dish := range menu.Dishes {
+		if math.IsNaN(dish.AverageRating) {
+			dish.AverageRating = 0
+			if err := m.DB.Save(&dish).Error; err != nil {
+				log.Printf("failed to update dish %d", dish.ID)
+			} else {
+				log.Printf("Updated dish %d which had NaN rating", dish.ID)
+			}
+		}
+	}
+
 	return &menu, nil
 }
 
