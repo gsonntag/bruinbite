@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -13,6 +14,10 @@ type RatingsRequest struct {
 	DishID  uint    `json:"dish_id" binding:"required"`
 	Score   int16   `json:"score" binding:"required"`
 	Comment *string `json:"comment"`
+}
+
+type BatchRatingsRequest struct {
+	Ratings []RatingsRequest `json:"ratings" binding:"required"`
 }
 
 func SubmitRatingHandler(mgr *db.DBManager) gin.HandlerFunc {
@@ -42,6 +47,40 @@ func SubmitRatingHandler(mgr *db.DBManager) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Rating submitted successfully"})
+	}
+}
+
+func SubmitRatingBatchHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request BatchRatingsRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			fmt.Println(err.Error())
+			return
+		}
+
+		userId, err := strconv.Atoi(c.GetString("userId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+			return
+		}
+
+		var ratings []models.Rating
+		for _, r := range request.Ratings {
+			rating := models.Rating{
+				UserID:  uint(userId),
+				DishID:  r.DishID,
+				Score:   r.Score,
+				Comment: r.Comment,
+			}
+			ratings = append(ratings, rating)
+		}
+		if err := mgr.CreateMultipleRatings(ratings); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Successfully submitted %d reviews.", len(ratings))})
 	}
 }
 

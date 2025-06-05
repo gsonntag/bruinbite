@@ -358,20 +358,24 @@ function AddReviewContent() {
                 toast.error('Review comment cannot exceed 500 characters.');
                 return;
             }
-            const response = await api.post('/ratings', token, review)
+        }
+        let response
+        if (allReviews.length === 1) {
+            response = await api.post('/ratings', token, allReviews[0])
+        } else {
+            response = await api.post('/ratings/batch', token, { ratings: allReviews })
+        }
 
-            console.log('SUBMISSION DATA WITH AUTHENTICATED USER:', review);
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Error submitting review:', errorData);
-                toast.error(`Failed to submit review: ${errorData.message || 'Unknown error'}`);
-                return;
-            }
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error submitting review:', errorData);
+            toast.error(`Failed to submit review: ${errorData.message || 'Unknown error'}`);
+            return;
         }
 
         // successful submission
         setTimeout(() => {
-            toast.success('Review submitted successfully!');
+            toast.success(response.json()['message']);
             router.push('/');
         }, 250);
     };

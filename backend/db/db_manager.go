@@ -261,6 +261,51 @@ func (m *DBManager) CreateRating(rating *models.Rating) error {
 	return m.DB.Create(rating).Error
 }
 
+func (m *DBManager) CreateMultipleRatings(ratings []models.Rating) error {
+	if len(ratings) == 0 {
+		return nil
+	}
+
+	// Track unique DishIDs
+	affectedDishIDs := make(map[uint]bool)
+	for _, r := range ratings {
+		affectedDishIDs[r.DishID] = true
+	}
+
+	// Bulk insert ratings
+	if err := m.DB.Create(&ratings).Error; err != nil {
+		return fmt.Errorf("failed to insert ratings: %w", err)
+	}
+
+	// Update average rating for each affected dish
+	for dishID := range affectedDishIDs {
+		var dish models.Dish
+		if err := m.DB.First(&dish, dishID).Error; err != nil {
+			return fmt.Errorf("could not find dish with ID %d: %w", dishID, err)
+		}
+
+		// Get updated total score and count
+		var totalScore float64
+		var totalCount int64
+		if err := m.DB.Model(&models.Rating{}).
+			Where("dish_id = ?", dishID).
+			Select("SUM(score), COUNT(*)").
+			Scan(&struct {
+				Sum   *float64
+				Count *int64
+			}{&totalScore, &totalCount}).Error; err != nil {
+			return fmt.Errorf("failed to compute average for dish ID %d: %w", dishID, err)
+		}
+
+		dish.AverageRating = totalScore / float64(totalCount)
+		if err := m.DB.Save(&dish).Error; err != nil {
+			return fmt.Errorf("failed to update dish average rating for dish ID %d: %w", dishID, err)
+		}
+	}
+
+	return nil
+}
+
 func (m *DBManager) GetMenuByHallIDAndDate(hallID uint, date models.Date) (*models.Menu, error) {
 	var menu models.Menu
 

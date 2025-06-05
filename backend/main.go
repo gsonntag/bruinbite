@@ -111,6 +111,13 @@ func RegisterRoutes(router *gin.Engine) {
 		handlers.AuthMiddleware(),
 		handlers.SubmitRatingHandler(DBManager))
 
+	// Register ratings BATCH route
+	// expecting body params: dish_id, rating, comment (optional)
+	// e.g. {"ratings": [{"dish_id": 1, "rating": 4.5, "comment": "Great dish!"}, {"dish_id": 2, "rating": 1.5, "comment": "Bad dish!"}]}
+	router.POST("/ratings/batch",
+		handlers.AuthMiddleware(),
+		handlers.SubmitRatingBatchHandler(DBManager))
+
 	// Get user ratings route
 	// expecting no params, will return all ratings made by the user
 	router.GET("/userratings",
