@@ -371,9 +371,9 @@ function AddReviewContent() {
 
         // successful submission
         setTimeout(() => {
-            toast.success('Review submitted successfully! Redirecting to home page...');
+            toast.success('Review submitted successfully!');
             router.push('/');
-        }, 1000);
+        }, 250);
     };
 
     const renderStep1 = () => (

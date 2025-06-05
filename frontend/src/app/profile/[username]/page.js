@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Navbar } from '../../components/Navbar';
-import { Rating } from '../../components/Rating';
+import Rating from '../../components/Rating';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '../../utils/api'
 
@@ -101,7 +101,7 @@ export default function Profile() {
 
                 {/* User Ratings Section */}
                 <div className="max-w-2xl mx-auto mt-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Ratings</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">User Ratings</h2>
                     {userRatings.length === 0 ? (
                         <p className="text-gray-600">No ratings yet</p>
                     ) : (

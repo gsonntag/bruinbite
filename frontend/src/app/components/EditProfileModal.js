@@ -90,7 +90,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
             }
 
             console.log('Sending PUT request to /profile...');
-            const response = api.put('/profile', requestData, token)
+            const response = await api.put('/profile', token, requestData)
             console.log('Response status:', response.status);
             
             if (!response.ok) {

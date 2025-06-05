@@ -18,6 +18,10 @@ function getUserRatings() {
     });
 }
 
+function toDateString(date) {
+    return date.month + "/" + date.day + "/" + date.year;
+}
+
 
 export default function Ratings() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -44,6 +48,7 @@ export default function Ratings() {
     useEffect(() => {
         getUserRatings().then(data => {
             if (data) {
+                console.log(data)
                 // Sort ratings by created_at date (most recent first)
                 const sortedRatings = data.sort((a, b) => 
                     new Date(b.created_at) - new Date(a.created_at)
@@ -99,7 +104,7 @@ export default function Ratings() {
                                         </div>
                                         <div className="flex items-center">
                                             <span className="font-medium text-gray-700 w-20">Last Seen:</span>
-                                            <span>{new Date(rating.dish.last_seen_date).toLocaleDateString()}</span>
+                                            <span>{toDateString(rating.dish.last_seen_date)}</span>
                                         </div>
                                     </div>
                                 </div>

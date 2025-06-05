@@ -20,8 +20,8 @@ export default function DishDetail() {
       try {
         //two endpoitns - one for ratings and other for fetching dish info
         const [ratingsResponse, dishResponse] = await Promise.all([
-          api.get('/dishratings', {dish_id}),
-          api.get('/dish', {dish_id})
+          api.get(`/dishratings/${dish_id}`),
+          api.get(`/dish/${dish_id}`)
         ]);
 
         if (!dishResponse.ok) {
@@ -131,7 +131,7 @@ export default function DishDetail() {
           ) : (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                {dishInfo?.name || `Dish ${dishId}`}
+                {dishInfo?.name || `Dish ${dish_id}`}
               </h1>
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                 <div className="flex items-center">
@@ -175,11 +175,11 @@ export default function DishDetail() {
                     month: dishInfo?.last_seen_date?.month?.toString() || "",
                     day: dishInfo?.last_seen_date?.day?.toString() || "",
                     year: dishInfo?.last_seen_date?.year?.toString() || "",
-                    dishId: dishId.toString(),
-                    dishName: dishInfo?.name || `Dish ${dishId}`,
+                    dishId: dish_id.toString(),
+                    dishName: dishInfo?.name || `Dish ${dish_id}`,
                     location: dishInfo?.location || "",
                   });
-
+                  console.log("AYYAYAYAYAYA" + params.toString())
                   router.push(`/add-review?${params.toString()}`);
                 }}
                 className="px-4 py-2 bg-[#0d92db] text-white rounded-md hover:bg-blue-600"
