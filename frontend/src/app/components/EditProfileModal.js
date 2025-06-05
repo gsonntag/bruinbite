@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Image } from 'next/image';
+import toast from 'react-hot-toast';
 
 export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }) {
     const [formData, setFormData] = useState({
@@ -129,7 +130,7 @@ export default function EditProfileModal({ isOpen, onClose, userInfo, onUpdate }
             setError(null);
             
             // Show success message briefly
-            alert('Profile updated successfully!');
+            toast.success('Profile updated successfully!');
             
             // Close the modal
             onClose();

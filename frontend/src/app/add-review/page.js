@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { Navbar } from '../components/Navbar';
 import { useRouter, useSearchParams } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 // Same mappings as in menus page
 const hallApiNameToFormName = {
@@ -269,7 +270,7 @@ function AddReviewContent() {
                 setCurrentStep(2);
             } catch (error) {
                 console.error('Error fetching menu:', error);
-                alert('Error loading menu. Please try again.');
+                toast.error('Error loading menu. Please try again.');
             } finally {
                 setLoading(false);
             }
@@ -323,7 +324,7 @@ function AddReviewContent() {
         
         const token = localStorage.getItem('jwt');
         if (!token) {
-            alert('Please log in to submit a review.');
+            toast.error('Please log in to submit a review.');
             router.push('/');
             return;
         }
@@ -339,19 +340,18 @@ function AddReviewContent() {
 
         console.log('REVIEWS TO SUBMIT:', allReviews);
          
-
         // send to server, one review per dish
         for (const review of allReviews) {
             if (review.score == null) {
-                alert('Please provide a rating for all selected dishes.');
+                toast.error('Please provide a rating for all selected dishes.');
                 return;
             }
             if (review.score < 1 || review.score > 5) {
-                alert('Rating must be between 1 and 5 stars.');
+                toast.error('Rating must be between 1 and 5 stars.');
                 return;
             }
             if (review.comment.length > 500) {
-                alert('Review comment cannot exceed 500 characters.');
+                toast.error('Review comment cannot exceed 500 characters.');
                 return;
             }
             const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/ratings', {
@@ -367,14 +367,14 @@ function AddReviewContent() {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Error submitting review:', errorData);
-                alert(`Failed to submit review: ${errorData.message || 'Unknown error'}`);
+                toast.error(`Failed to submit review: ${errorData.message || 'Unknown error'}`);
                 return;
             }
         }
 
         // successful submission
         setTimeout(() => {
-            alert('Review submitted successfully! \n\nRedirecting to home page...');
+            toast.success('Review submitted successfully! Redirecting to home page...');
             router.push('/');
         }, 1000);
     };
