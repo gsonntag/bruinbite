@@ -373,11 +373,13 @@ function AddReviewContent() {
             return;
         }
 
+
+        const { message } = await response.json();
+        toast.success(message);
+        router.push('/');
         // successful submission
-        setTimeout(() => {
-            toast.success(response.json()['message']);
-            router.push('/');
-        }, 250);
+        // setTimeout(() => {
+        // }, 250);
     };
 
     const renderStep1 = () => (

@@ -99,7 +99,7 @@ func GetUserRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, ratings)
+		c.JSON(http.StatusOK, gin.H{"message": "Review submitted successfully."})
 	}
 }
 
