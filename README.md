@@ -17,6 +17,8 @@ bruinbite/
 
 ## Local Development Setup
 
+Make sure you install [Docker](https://www.docker.com/), which can be found at the provided link.
+
 ### Database Setup
 
 Start the PostgreSQL database using Docker Compose:
@@ -26,23 +28,24 @@ Start the PostgreSQL database using Docker Compose:
 
 ### Backend Setup
 
+DISCLAIMER: These setup instructions are intended for Unix-like systems.
+
 1. Navigate to the `backend` directory:
    ```bash
    cd backend
    ```
 
-2. Install Go dependencies:
+2. Run starter script to install dependencies and set up Python venv:
    ```bash
-   go mod download
+   ./start.sh
    ```
 
-3. Set up your database connection variables in db.env.
+3. Close process and ensure your database connection variables are set in db.env (default should be fine for local production).
 
-4. Start the backend server:
+4. Start the backend server (the final command in this script contains `go run main.go`):
    ```bash
-   go run main.go
+   ./start.sh
    ```
-   If you run into issues, try running `./start.sh`
 
 The backend server will start on `http://localhost:8080`, and automatically populate the tables with data from the UCLA website. You can test it by making a request to `http://localhost:8080/ping`
 
