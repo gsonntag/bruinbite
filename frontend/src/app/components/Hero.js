@@ -3,6 +3,7 @@ import { FaSearch, FaFilter } from "react-icons/fa";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getDisplayName } from "../utils/hallMaps";
+import { api } from '../utils/api'
 
 export default function Hero() {
     const [query, setQuery] = useState("");
@@ -48,16 +49,17 @@ export default function Hero() {
 
             try {
                 // Build search URL with optional hall filter
-                let searchUrl = process.env.NEXT_PUBLIC_API_URL + `/search?keyword=${encodeURIComponent(query)}`;
+                let keyword = encodeURIComponent(query);
+                let hall_name = null;
                 if (selectedHall) {
                     // Map the selected hall value to the actual database hall name
                     const actualHallName = hallValueToApiName[selectedHall];
                     if (actualHallName) {
-                        searchUrl += `&hall=${encodeURIComponent(actualHallName)}`;
+                        hall_name = encodeURIComponent(actualHallName)
                     }
                 }
                 
-                const response = await fetch(searchUrl);
+                const response = hall_name ? api.get('/search', token, {keyword, hall_name}) : api.get('/search', token, {keyword});
                 if (!response.ok) {
                     throw new Error("search failed");
                 }

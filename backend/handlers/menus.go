@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"sort"
@@ -78,6 +79,7 @@ func GetHallMealPeriods(mgr *db.DBManager) gin.HandlerFunc {
 		mealPeriods, err := mgr.GetMealPeriodsForDate(query.HallName, date)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			fmt.Println(err.Error())
 			return
 		}
 

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Navbar } from "../components/Navbar";
 import { RecommendedModal } from "../components/RecommendedModal";
 import { useRouter } from "next/navigation";
+import { api } from '../utils/api'
 
 // TODO: possibly dynamically get the hall names from the API
 const hallApiNameToFormName = {
@@ -30,18 +31,25 @@ const mealPeriodNames = {
 
 // get valid meal periods for a certain day given a hall
 async function getMealPeriods(hall_name, month, day, year) {
-  const res = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + `/hall-meal-periods?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}`
-  );
-  if (!res.ok) throw new Error("Failed to fetch meal periods");
-  return res.json(); // ← expected to return string[] like ["BREAKFAST","LUNCH"]
+  const response = await api.get('/hall-meal-periods', null, {
+    hall_name,
+    month,
+    day,
+    year
+  })
+  if (!response.ok) throw new Error("Failed to fetch meal periods");
+  return response.json(); // expected to return string[] like ["BREAKFAST","LUNCH"]
 }
 
 // get menu from api
 async function getMenu(hall_name, month, day, year, meal_period) {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + `/menu?hall_name=${hall_name}&month=${month}&day=${day}&year=${year}&meal_period=${meal_period}`
-  );
+  const response = await api.get('/menu', null, {
+    hall_name,
+    month,
+    day,
+    year,
+    meal_period
+  })
   if (!response.ok) {
     throw new Error("Failed to fetch menu");
   }

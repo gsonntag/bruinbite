@@ -1,33 +1,30 @@
+import { api } from '../utils/api'
 
 export async function signup(username, email, password) {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
-        credentials: "include", // if you ever use cookies
-      });
+  const response = await api.post('/signup', null, {
+    username,
+    email,
+    password
+  })
     
-      if (!res.ok) {
-        const err = await res.json();
+    
+      if (!response.ok) {
+        const err = await response.json();
         throw new Error(err.error || "Signup failed");
       }
-      return res.json();
+      return response.json();
 }
 
 export async function login(username, password) {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-        credentials: "include",
-      });
+  const response = await api.post('/login', null, {
+    username, password
+  })
     
-    if (!res.ok) {
-        const err = await res.json();
+    if (!response.ok) {
+        const err = await response.json();
         throw new Error(err.error || "Login failed");
     }
-    const { token, user } = await res.json();
-    // TODO: possibly save user somewhere?
+    const { token, user } = await response.json();
     localStorage.setItem("jwt", token);
     return user;
 }

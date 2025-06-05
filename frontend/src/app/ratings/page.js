@@ -2,20 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
 import { useRouter } from 'next/navigation';
-
+import { api } from '../utils/api'
 
 function getUserRatings() {
     const token = localStorage.getItem('jwt');
     if (!token) {
         return null;
     }
-    return fetch(process.env.NEXT_PUBLIC_API_URL + '/userratings', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
+    return api.get('/userratings', token)
     .then(response => {
         if (!response.ok) {
             throw new Error('Failed to fetch user ratings');
