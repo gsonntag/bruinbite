@@ -7,6 +7,7 @@ import { RecommendedModal } from "../components/RecommendedModal";
 import { useRouter } from "next/navigation";
 import { api } from '../utils/api'
 import toast from 'react-hot-toast';
+import LoginForm from '../components/LoginForm';
 
 // TODO: possibly dynamically get the hall names from the API
 const hallApiNameToFormName = {
@@ -146,6 +147,7 @@ export default function Menus() {
   const [fetchedMenu, setFetchedMenu] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showRecs, setshowRecs] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
 
   const fetchMenuWithPeriod = useCallback(
     async (hallName, date, mealPeriod) => {
@@ -235,17 +237,24 @@ export default function Menus() {
   };
 
   const handleDishClick = (dish) => {
+    const token = localStorage.getItem('jwt');
+    if (!token) {
+        toast.error('Please log in to add a review');
+        setShowLoginForm(true);
+        return;
+    }
+    
     // Create URL parameters to pass to add-review page
     const params = new URLSearchParams({
-      step: "3",
-      hallName: currentSearch.hallName,
-      mealPeriod: currentSearch.mealPeriod,
-      month: currentSearch.date.month.toString(),
-      day: currentSearch.date.day.toString(),
-      year: currentSearch.date.year.toString(),
-      dishId: dish.id.toString(),
-      dishName: dish.name,
-      location: dish.location || "",
+        step: "3",
+        hallName: currentSearch.hallName,
+        mealPeriod: currentSearch.mealPeriod,
+        month: currentSearch.date.month.toString(),
+        day: currentSearch.date.day.toString(),
+        year: currentSearch.date.year.toString(),
+        dishId: dish.id.toString(),
+        dishName: dish.name,
+        location: dish.location || "",
     });
 
     router.push(`/add-review?${params.toString()}`);
@@ -421,6 +430,15 @@ export default function Menus() {
         )}
       </div>
       <RecommendedModal isOpen={showRecs} onClose={() => setshowRecs(false)} />
+      {showLoginForm && (
+        <LoginForm 
+          onClose={() => setShowLoginForm(false)} 
+          onLoginSuccess={() => {
+            setShowLoginForm(false);
+            toast.success('Successfully logged in');
+          }} 
+        />
+      )}
     </div>
   );
 }

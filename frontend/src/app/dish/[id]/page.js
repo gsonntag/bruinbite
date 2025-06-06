@@ -5,6 +5,8 @@ import { Navbar } from "../../components/Navbar";
 import { getDisplayName } from "../../utils/hallMaps";
 import Rating from "../../components/Rating";
 import { api } from '../../utils/api'
+import toast from 'react-hot-toast';
+import LoginForm from '../../components/LoginForm';
 
 export default function DishDetail() {
   const params = useParams();
@@ -14,6 +16,7 @@ export default function DishDetail() {
   const [dishRatings, setDishRatings] = useState([]);
   const [dishInfo, setDishInfo] = useState(null);
   const [error, setError] = useState(null);
+  const [showLoginForm, setShowLoginForm] = useState(false);
 
   useEffect(() => {
     const fetchDishData = async () => {
@@ -167,6 +170,13 @@ export default function DishDetail() {
               <p className="text-gray-500 mb-4">No reviews for this dish yet</p>
               <button
                 onClick={() => {
+                  const token = localStorage.getItem('jwt');
+                  if (!token) {
+                    toast.error('Please log in to add a review');
+                    setShowLoginForm(true);
+                    return;
+                  }
+                  
                   // Create URL parameters to pass to add-review page
                   const params = new URLSearchParams({
                     step: "3",
@@ -179,7 +189,6 @@ export default function DishDetail() {
                     dishName: dishInfo?.name || `Dish ${dish_id}`,
                     location: dishInfo?.location || "",
                   });
-                  console.log("AYYAYAYAYAYA" + params.toString())
                   router.push(`/add-review?${params.toString()}`);
                 }}
                 className="px-4 py-2 bg-[#0d92db] text-white rounded-md hover:bg-blue-600"
@@ -190,6 +199,15 @@ export default function DishDetail() {
           )}
         </div>
       </div>
+      {showLoginForm && (
+        <LoginForm 
+          onClose={() => setShowLoginForm(false)} 
+          onLoginSuccess={() => {
+            setShowLoginForm(false);
+            toast.success('Successfully logged in');
+          }} 
+        />
+      )}
     </div>
   );
 }
