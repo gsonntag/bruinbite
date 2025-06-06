@@ -290,6 +290,7 @@ func IndexAllUsers() error {
 func main() {
 	// Parse command line flags
 	reindexFlag := flag.Bool("reindex", false, "Rebuild the search index")
+	recalcFlag := flag.Bool("recalc", false, "Recalculate all ratings")
 	flag.Parse()
 
 	// Load go dot env
@@ -310,6 +311,15 @@ func main() {
 	if err != nil {
 		log.Fatalln("Failed to initialize search system", err)
 		return
+	}
+
+	// If recalc flag is set, recalculate all ratings
+	if *recalcFlag {
+		log.Println("Recalculating all ratings...")
+		if err := DBManager.RecalculateAllRatings(); err != nil {
+			log.Fatalf("Failed to recalculate ratings: %v", err)
+		}
+		log.Println("All ratings recalculated successfully")
 	}
 
 	// Fetch and ingest data if needed

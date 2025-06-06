@@ -263,6 +263,54 @@ func (m *DBManager) CreateRating(rating *models.Rating) error {
 	return m.DB.Create(rating).Error
 }
 
+// RecalculateAllRatings recalculates the average ratings for all dishes
+func (m *DBManager) RecalculateAllRatings() error {
+	var dishes []models.Dish
+	err := m.DB.Find(&dishes).Error
+	if err != nil {
+		return fmt.Errorf("could not retrieve dishes: %w", err)
+	}
+
+	for _, dish := range dishes {
+		var totalRating float64
+		var ratingsCount int64
+
+		err = m.DB.Model(&models.Rating{}).
+			Where("dish_id = ?", dish.ID).
+			Count(&ratingsCount).Error
+		if err != nil {
+			return fmt.Errorf("could not count ratings for dish with ID %d: %w", dish.ID, err)
+		}
+
+		if ratingsCount <= 0 {
+			dish.AverageRating = 0
+			err = m.DB.Save(&dish).Error
+			if err != nil {
+				return fmt.Errorf("could not update dish average rating for dish with ID %d: %w", dish.ID, err)
+			}
+			continue
+		}
+
+		err = m.DB.Model(&models.Rating{}).
+			Where("dish_id = ?", dish.ID).
+			Select("SUM(score)").
+			Scan(&totalRating).Error
+		if err != nil {
+			return fmt.Errorf("could not sum ratings for dish with ID %d: %w", dish.ID, err)
+		}
+
+
+		dish.AverageRating = totalRating / float64(ratingsCount)
+		
+		err = m.DB.Save(&dish).Error
+		if err != nil {
+			return fmt.Errorf("could not update dish average rating for dish with ID %d: %w", dish.ID, err)
+		}
+	}
+
+	return nil
+}
+
 func (m *DBManager) CreateMultipleRatings(ratings []models.Rating) error {
 	for _, rating := range ratings {
 		err := m.CreateRating(&rating)
