@@ -11,8 +11,10 @@ export function Navbar() {
     const [showLoginForm, setShowLoginForm] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [userInfo, setUserInfo] = useState(null);
     const dropdownRef = useRef(null);
+    const mobileMenuRef = useRef(null);
     const pathname = usePathname();
 
     // Check if user is logged in on component mount
@@ -48,11 +50,14 @@ export function Navbar() {
         }
     };
 
-    // Close the dropdown when clicking outside of it
+    // Close the dropdown and mobile menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowDropdown(false);
+            }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+                setShowMobileMenu(false);
             }
         }
 
@@ -60,7 +65,7 @@ export function Navbar() {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [dropdownRef]);
+    }, [dropdownRef, mobileMenuRef]);
 
     const handleLogout = async () => {
         try {
@@ -68,6 +73,7 @@ export function Navbar() {
             setIsLoggedIn(false);
             setUserInfo(null);
             setShowDropdown(false);
+            setShowMobileMenu(false);
             toast.success('Successfully logged out');
             window.location.href = '/'; // Redirect to home page after logout
         } catch (error) {
@@ -87,6 +93,10 @@ export function Navbar() {
         setShowDropdown(!showDropdown);
     }
 
+    const toggleMobileMenu = () => {
+        setShowMobileMenu(!showMobileMenu);
+    }
+
     return (
         <div>
             <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
@@ -103,7 +113,9 @@ export function Navbar() {
                             BruinBite
                         </span>
                     </Link>
-                    <div className="flex items-center gap-4">
+                    
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-4">
                         {isLoggedIn && (
                             <><Link href="/add-review">
                                 <button className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:border-gray-300">
@@ -157,6 +169,85 @@ export function Navbar() {
                             </button>
                         )}
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={toggleMobileMenu}
+                        className="md:hidden p-2 rounded-md hover:bg-gray-100"
+                        aria-label="Menu"
+                    >
+                        <svg
+                            className="h-6 w-6"
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            {showMobileMenu ? (
+                                <path d="M6 18L18 6M6 6l12 12" />
+                            ) : (
+                                <path d="M4 6h16M4 12h16M4 18h16" />
+                            )}
+                        </svg>
+                    </button>
+
+                    {/* Mobile Menu */}
+                    {showMobileMenu && (
+                        <div
+                            ref={mobileMenuRef}
+                            className="absolute top-16 left-0 right-0 bg-white border-b border-gray-200 md:hidden"
+                        >
+                            <div className="px-4 py-3 space-y-3">
+                                <Link href="/menus">
+                                    <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
+                                        Menus
+                                    </button>
+                                </Link>
+                                {isLoggedIn ? (
+                                    <>
+                                        <Link href="/add-review">
+                                            <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
+                                                Add a Review
+                                            </button>
+                                        </Link>
+                                        <Link href="/feed">
+                                            <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
+                                                Feed
+                                            </button>
+                                        </Link>
+                                        <Link href="/profile">
+                                            <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
+                                                My Profile
+                                            </button>
+                                        </Link>
+                                        <Link href="/ratings">
+                                            <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
+                                                My Ratings
+                                            </button>
+                                        </Link>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 text-red-600"
+                                        >
+                                            Log Out
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            setShowMobileMenu(false);
+                                            setShowLoginForm(true);
+                                        }}
+                                        className="w-full text-center px-3 py-2 text-sm rounded-md bg-[#0d92db] text-white hover:bg-sky-600"
+                                    >
+                                        Log In / Sign Up
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </header>
             {showLoginForm && <LoginForm onClose={() => setShowLoginForm(false)} onLoginSuccess={handleLoginSuccess} />}
