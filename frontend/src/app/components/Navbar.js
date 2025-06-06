@@ -53,10 +53,13 @@ export function Navbar() {
     // Close the dropdown and mobile menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
+            // Get the mobile menu button element
+            const mobileMenuButton = event.target.closest('button[aria-label="Menu"]');
+            
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowDropdown(false);
             }
-            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && !mobileMenuButton) {
                 setShowMobileMenu(false);
             }
         }
@@ -200,29 +203,29 @@ export function Navbar() {
                             className="absolute top-16 left-0 right-0 bg-white border-b border-gray-200 md:hidden"
                         >
                             <div className="px-4 py-3 space-y-3">
-                                <Link href="/menus">
+                                <Link href="/menus" onClick={() => setShowMobileMenu(false)}>
                                     <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
                                         Menus
                                     </button>
                                 </Link>
                                 {isLoggedIn ? (
                                     <>
-                                        <Link href="/add-review">
+                                        <Link href="/add-review" onClick={() => setShowMobileMenu(false)}>
                                             <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
                                                 Add a Review
                                             </button>
                                         </Link>
-                                        <Link href="/feed">
+                                        <Link href="/feed" onClick={() => setShowMobileMenu(false)}>
                                             <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
                                                 Feed
                                             </button>
                                         </Link>
-                                        <Link href="/profile">
+                                        <Link href="/profile" onClick={() => setShowMobileMenu(false)}>
                                             <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
                                                 My Profile
                                             </button>
                                         </Link>
-                                        <Link href="/ratings">
+                                        <Link href="/ratings" onClick={() => setShowMobileMenu(false)}>
                                             <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100">
                                                 My Ratings
                                             </button>
