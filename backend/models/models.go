@@ -125,7 +125,7 @@ type Rating struct {
 	User      User      `gorm:"foreignKey:UserID" json:"user"`
 	DishID    uint      `gorm:"not null;index" json:"dish_id"`
 	Dish      Dish      `gorm:"foreignKey:DishID" json:"dish"`
-	Score     int16     `gorm:"type:smallint;not null;check:score >= 0 AND score <= 5" json:"score"`
+	Score     int16     `gorm:"type:smallint;not null;check:score > 0 AND score <= 5" json:"score"`
 	Comment   *string   `gorm:"type:text" json:"comment,omitempty"`
 	CreatedAt time.Time `gorm:"type:timestamp with time zone;not null;default:now()" json:"created_at"`
 }

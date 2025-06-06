@@ -46,7 +46,6 @@ func GetRecommendedHallForUser(mgr *db.DBManager) gin.HandlerFunc {
 
 		now := time.Now().In(mgr.TZ)
 		periods := GetAllowedMealPeriods(now)
-
 		// Fetch all menus for that meal period
 		var menus []models.Menu
 		if err := mgr.DB.Preload("Dishes").Where(
@@ -194,13 +193,13 @@ func GetAllowedMealPeriods(now time.Time) []string {
 
 func GetActualMealPeriod(hour int) string {
 	// Source: https://dining.ucla.edu/hours/
-	if hour > 7 && hour < 10 {
+	if hour >= 7 && hour < 10 {
 		return "BREAKFAST"
-	} else if hour > 11 && hour < 15 {
+	} else if hour >= 11 && hour < 15 {
 		return "LUNCH"
-	} else if hour > 17 && hour < 21 {
+	} else if hour >= 17 && hour < 21 {
 		return "DINNER"
-	} else if hour < 2 || hour > 21 {
+	} else if hour < 2 || hour >= 21 {
 		return "LATE_NIGHT"
 	}
 	return "NONE"
