@@ -5,7 +5,7 @@ function buildQueryParams(params = {}) {
     return query ? `?${query}` : ''
 }
 
-async function request(endpoint, method = 'GET',  token = null, data = null) {
+async function request(endpoint, method = 'GET', token = null, data = null) {
     const headers = {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'any-value'
