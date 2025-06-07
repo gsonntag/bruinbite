@@ -230,6 +230,63 @@ func (m *DBManager) GetDishesByName(name string, limit int) ([]models.Dish, erro
 	return dishes, nil
 }
 
+func (m *DBManager) GetRatingForDish(dishId uint, userId uint) (*models.Rating, error) {
+	var rating models.Rating
+    err := m.DB.
+        Where("dish_id = ? AND user_id = ?", dishId, userId).
+        First(&rating).Error
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            // no rating found
+            return nil, nil
+        }
+        return nil, fmt.Errorf(
+            "could not fetch rating for dish %d by user %d: %w",
+            dishId, userId, err,
+        )
+    }
+    return &rating, nil
+}
+
+func (m *DBManager) RemoveRating(rating *models.Rating) error {
+	return m.DB.Transaction(func(tx *gorm.DB) error {
+		// load associated dish
+		var dish models.Dish
+		if err := tx.First(&dish, rating.DishID).Error; err != nil {
+			return fmt.Errorf("could not find dish with ID %d: %w", rating.DishID, err)
+		}
+
+		var count int64 // rating count
+		if err := tx.Model(&models.Rating{}).
+			Where("dish_id = ?", rating.DishID).
+			Count(&count).Error; err != nil {
+			return fmt.Errorf("could not count ratings for dish %d: %w", rating.DishID, err)
+		}
+
+		if count <= 1 {
+			dish.AverageRating = 0
+		} else {
+			var total float64
+			if err := tx.Model(&models.Rating{}).
+				Where("dish_id = ?", rating.DishID).
+				Select("SUM(score)").Scan(&total).Error; err != nil {
+				return fmt.Errorf("could not sum ratings for dish %d: %w", rating.DishID, err)
+			}
+
+			dish.AverageRating = (total - float64(rating.Score)) / float64(count-1)
+		}
+
+		if err := tx.Save(&dish).Error; err != nil {
+			return fmt.Errorf("could not update dish average rating for %d: %w", rating.DishID, err)
+		}
+
+		if err := tx.Delete(&models.Rating{}, rating.ID).Error; err != nil {
+			return fmt.Errorf("failed to delete review with ID %d: %w", rating.ID, err)
+		}
+		return nil
+	})
+}
+
 // CreateRating creates a new rating for a dish
 func (m *DBManager) CreateRating(rating *models.Rating) error {
 	// update the average rating of the dish
@@ -238,6 +295,7 @@ func (m *DBManager) CreateRating(rating *models.Rating) error {
 	if err != nil {
 		return fmt.Errorf("could not find dish with ID %d: %w", rating.DishID, err)
 	}
+
 	// Calculate new average rating
 	var ratingsCount int64
 	err = m.DB.Model(&models.Rating{}).Where("dish_id = ?", rating.DishID).Count(&ratingsCount).Error
@@ -299,9 +357,8 @@ func (m *DBManager) RecalculateAllRatings() error {
 			return fmt.Errorf("could not sum ratings for dish with ID %d: %w", dish.ID, err)
 		}
 
-
 		dish.AverageRating = totalRating / float64(ratingsCount)
-		
+
 		err = m.DB.Save(&dish).Error
 		if err != nil {
 			return fmt.Errorf("could not update dish average rating for dish with ID %d: %w", dish.ID, err)

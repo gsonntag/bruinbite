@@ -25,7 +25,7 @@ export function RecommendedModal({ isOpen, onClose }) {
                 if (response.status === 401) {
                     setError('You are not logged in! Log in to view recommendations.');
                 } else {
-                    setError('Failed to fetch recommendations... Please try again later.');
+                    setError('');
                 }
                 return;
             }
@@ -40,7 +40,7 @@ export function RecommendedModal({ isOpen, onClose }) {
             }
         } catch (error) {
             console.log(error);
-            setError('Failed to fetch recommendations... Please try again later.');
+            setError('');
         }
     };
 

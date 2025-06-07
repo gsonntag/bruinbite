@@ -41,6 +41,21 @@ func SubmitRatingHandler(mgr *db.DBManager) gin.HandlerFunc {
 			Score:   request.Score,
 			Comment: request.Comment,
 		}
+
+		// check if user already has a rating for this dish
+		existingRating, err := mgr.GetRatingForDish(request.DishID, uint(userId))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if existingRating != nil {
+			err := mgr.RemoveRating(existingRating)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}
+
 		if err := mgr.CreateRating(&rating); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
