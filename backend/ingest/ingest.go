@@ -49,12 +49,12 @@ func FetchAndIngest(mgr *db.DBManager) error {
 
 	cmd := exec.Command("scraper/.venv/bin/python3", "scraper/scraper.py")
 	out, err := cmd.Output()
-	elapsed := time.Since(start)
-	fmt.Printf("Finished scraping (%s)\n", elapsed)
-
 	if err != nil {
 		return fmt.Errorf("scraper failed: %w\noutput:\n%s", err, out)
 	}
+	
+	elapsed := time.Since(start)
+	fmt.Printf("Finished scraping (%s)\n", elapsed)
 
 	var topLevel MenuData
 	if err := json.Unmarshal(out, &topLevel); err != nil {

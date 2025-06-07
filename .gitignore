@@ -60,3 +60,7 @@ backend/bleve_index/
 # Go build artifacts
 backend/main
 backend/*.exe
+
+# ENV files
+backend/db.env
+frontend/.env.local

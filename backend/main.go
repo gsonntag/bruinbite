@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"github.com/robfig/cron/v3"
 )
 
 const Port = 8080
@@ -49,11 +51,12 @@ func InitializeDatabase() error {
 
 func RegisterRoutes(router *gin.Engine) {
 
-	frontendUrl := os.Getenv("FRONTEND_URL")
+	rawUrls := os.Getenv("FRONTEND_URLS")
+	frontendUrls := strings.Split(rawUrls, ",")
 	// CORS is necessary so that frontend can communicate with backend.
 	// Otherwise, it will be viewed as a cross-origin request and will be blocked.
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{frontendUrl}, // frontend URL
+		AllowOrigins:     frontendUrls,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "ngrok-skip-browser-warning"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -287,27 +290,15 @@ func IndexAllUsers() error {
 	return nil
 }
 
-func main() {
+func InitializeCommandLineArguments() {
 	// Parse command line flags
 	reindexFlag := flag.Bool("reindex", false, "Rebuild the search index")
 	recalcFlag := flag.Bool("recalc", false, "Recalculate all ratings")
 	flag.Parse()
 
-	// Load go dot env
-	if err := godotenv.Load("db.env"); err != nil {
-		log.Fatalln("db.env file not found, exiting")
-		return
-	}
-
-	err := InitializeDatabase()
-	if err != nil {
-		log.Fatalln("Failed to connect to database", err)
-		return
-	}
-
 	// Initialize search system
 	forceReindex := *reindexFlag
-	err = InitializeSearch(forceReindex)
+	err := InitializeSearch(forceReindex)
 	if err != nil {
 		log.Fatalln("Failed to initialize search system", err)
 		return
@@ -321,11 +312,47 @@ func main() {
 		}
 		log.Println("All ratings recalculated successfully")
 	}
+}
+
+func RunScraper() error {
+	return ingest.FetchAndIngest(DBManager)
+}
+
+// Runs scheduler every morning at 12:05 AM Los Angeles time
+func InitializeScraperScheduler() {
+	c := cron.New()
+	c.AddFunc("5 0 * * *", func() {
+		go RunScraper()
+	})
+
+	c.Start()
+}
+
+func main() {
+
+	// Load go dot env
+	if err := godotenv.Load("db.env"); err != nil {
+		log.Fatalln("db.env file not found, exiting")
+		return
+	}
+
+	err := InitializeDatabase()
+	if err != nil {
+		log.Fatalln("Failed to connect to database", err)
+		return
+	}
+
+	InitializeCommandLineArguments()
+
+	// Uses cron job to schedule
+	InitializeScraperScheduler()
 
 	// Fetch and ingest data if needed
-	err = ingest.FetchAndIngest(DBManager)
+	// Block main thread for scraper to run the first time (doesn't make sense to serve users before it's loaded)
+	err = RunScraper()
 	if err != nil {
 		fmt.Printf("ERR WITH SCRAPER: %v\n", err)
+		return
 	}
 
 	err = InitializeRouter()
@@ -333,4 +360,6 @@ func main() {
 		log.Fatalln("Failed to initialize Gin router")
 		return
 	}
+
+
 }
