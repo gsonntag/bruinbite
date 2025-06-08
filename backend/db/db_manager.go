@@ -642,3 +642,29 @@ func (m *DBManager) UpdateUserProfile(userID uint, username, email string, profi
 
 	return nil
 }
+
+func (m *DBManager) GetOpenHallsMap(date models.Date) (map[string][]string, error) {
+	type pair struct {
+		HallName string
+		MealPeriod string
+	}
+	var pairs []pair
+
+	err := m.DB.Table("menus").
+		Select("dining_halls.name AS hall_name, menus.date_meal_period AS meal_period").
+		Joins("JOIN dining_halls ON dining_halls.id = menus.hall_id").
+        Where("menus.date_day = ? AND menus.date_month = ? AND menus.date_year = ?",
+            date.Day, date.Month, date.Year).
+        Distinct().
+        Find(&pairs).
+        Error
+	if err != nil {
+		return nil, err
+	}
+	open := make(map[string][]string, len(pairs))
+	for _, p := range pairs {
+		open[p.HallName] = append(open[p.HallName], p.MealPeriod)
+	}
+
+	return open, nil
+}

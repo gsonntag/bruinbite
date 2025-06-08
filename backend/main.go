@@ -144,6 +144,10 @@ func RegisterRoutes(router *gin.Engine) {
 		handlers.GetHallMealPeriods(DBManager))
 
 	// Gets all valid meal periods for a given date
+	router.GET("/open-halls",
+		handlers.OpenHallsHandler(DBManager))
+
+	// Gets all valid meal periods for a given date
 	router.GET("/recommended",
 		handlers.AuthMiddleware(),
 		handlers.GetRecommendedHallForUser(DBManager))

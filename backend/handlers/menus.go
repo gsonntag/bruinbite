@@ -26,6 +26,12 @@ type DayQuery struct {
 	Year     int    `form:"year" binding:"required"`
 }
 
+type DateQuery struct {
+	Day int `form:"day" binding:"required"`
+	Month int `form:"month" binding:"required"`
+	Year int `form:"year" binding:"required"`
+}
+
 func HallHasAllDayBreakfast(hallName string) bool {
 	allPeriodsBreakfast := []string{"the-drey", "rendezvous", "epicuria-at-ackerman", "bruin-cafe"}
 	return slices.Contains(allPeriodsBreakfast, hallName)
@@ -106,5 +112,30 @@ func GetHallMealPeriods(mgr *db.DBManager) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"periods": mealPeriods,
 		})
+	}
+}
+
+func OpenHallsHandler(mgr *db.DBManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var query DateQuery
+		if err := c.ShouldBindQuery(&query); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		date := models.Date {
+			Day: query.Day,
+			Month: query.Month,
+			Year: query.Year,
+		}
+
+		aMap, err := mgr.GetOpenHallsMap(date)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		
+		c.JSON(http.StatusOK, gin.H{"open_halls": aMap})
+		return
 	}
 }
