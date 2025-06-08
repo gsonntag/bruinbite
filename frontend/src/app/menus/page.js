@@ -190,7 +190,7 @@ export default function Menus() {
       const today = new Date();
       const initialHallName = getInitialHall();
       const initialDate = {
-        month: today.getMonth() + 1,
+        month: today.getMonth() + 1, // zero-indexed
         day: today.getDate(),
         year: today.getFullYear(),
       };
@@ -226,6 +226,18 @@ export default function Menus() {
 
   const handleDateChange = (e) => {
     const [year, month, day] = e.target.value.split("-");
+
+    const selected = new Date(year, month, day);
+    // zero-out time on both dates
+    selected.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selected > today) {
+      toast.error("Date cannot be in the future.");
+      return; // don’t update formValues
+    }
+
     setFormValues({
       ...formValues,
       date: {
