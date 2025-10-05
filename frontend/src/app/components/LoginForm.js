@@ -85,7 +85,6 @@ export default function LoginForm({ onClose, onLoginSuccess }) {
         setError(`Internal Server Error: ${error.message}` || 'An error occurred. Please try again later.');
       }
     }
-    console.log('Form submitted:', formData);
   };
 
   const handleChange = (e) => {

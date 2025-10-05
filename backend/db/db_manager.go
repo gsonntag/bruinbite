@@ -192,7 +192,6 @@ func (m *DBManager) GetAllDishesByHallName(hallName string) ([]models.Dish, erro
 	// use name of hall to first find the hall ID
 	var hall models.DiningHall
 	err := m.DB.Where("name=?", hallName).First(&hall).Error
-	// TODO: doesnt return error if cant find hall, which is odd so itll throw server error instead
 	if err != nil {
 		return nil, err
 	}

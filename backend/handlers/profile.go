@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -36,10 +35,8 @@ func isValidEmail(email string) bool {
 func UpdateProfileHandler(mgr *db.DBManager, userSearchManager *search.BleveUserSearchManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get user ID from context (set by auth middleware)
-		userIdStr := c.GetString("userId")
-		userID, err := strconv.ParseUint(userIdStr, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		userID, ok := getUserIDFromContext(c)
+		if !ok {
 			return
 		}
 
@@ -57,7 +54,7 @@ func UpdateProfileHandler(mgr *db.DBManager, userSearchManager *search.BleveUser
 		}
 
 		// Get current user to check authorization
-		currentUser, err := mgr.GetUserByID(uint(userID))
+		currentUser, err := mgr.GetUserByID(userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user info"})
 			return
@@ -138,13 +135,13 @@ func UpdateProfileHandler(mgr *db.DBManager, userSearchManager *search.BleveUser
 		}
 
 		// Update user profile in database
-		if err := mgr.UpdateUserProfile(uint(userID), req.Username, req.Email, profilePicturePath); err != nil {
+		if err := mgr.UpdateUserProfile(userID, req.Username, req.Email, profilePicturePath); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update profile"})
 			return
 		}
 
 		// Return updated user info
-		user, err := mgr.GetUserByID(uint(userID))
+		user, err := mgr.GetUserByID(userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get updated user info"})
 			return
@@ -170,10 +167,8 @@ func UpdateProfileHandler(mgr *db.DBManager, userSearchManager *search.BleveUser
 func UploadProfilePictureHandler(mgr *db.DBManager, userSearchManager *search.BleveUserSearchManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get user ID from context
-		userIdStr := c.GetString("userId")
-		userID, err := strconv.ParseUint(userIdStr, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		userID, ok := getUserIDFromContext(c)
+		if !ok {
 			return
 		}
 
@@ -244,20 +239,20 @@ func UploadProfilePictureHandler(mgr *db.DBManager, userSearchManager *search.Bl
 		relativePath := fmt.Sprintf("/uploads/profile_pictures/%s", filename)
 
 		// Get current user info to preserve username and email
-		currentUser, err := mgr.GetUserByID(uint(userID))
+		currentUser, err := mgr.GetUserByID(userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user info"})
 			return
 		}
 
 		// Update user profile picture in database
-		if err := mgr.UpdateUserProfile(uint(userID), currentUser.Username, currentUser.Email, &relativePath); err != nil {
+		if err := mgr.UpdateUserProfile(userID, currentUser.Username, currentUser.Email, &relativePath); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update profile picture"})
 			return
 		}
 
 		// Get updated user info
-		updatedUser, err := mgr.GetUserByID(uint(userID))
+		updatedUser, err := mgr.GetUserByID(userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get updated user info"})
 			return

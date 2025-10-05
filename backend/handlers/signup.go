@@ -26,71 +26,71 @@ var emailRegex = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-
 var passwordRegex = regexp.MustCompile(`^.{8,}$`)                                         // 8+ chars
 
 func SignupHandler(mgr *db.DBManager) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 		var request SignupRequest
-		if err := ctx.ShouldBindJSON(&request); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if !usernameRegexp.MatchString(request.Username) {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid username"})
-		}
+	if !usernameRegexp.MatchString(request.Username) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid username"})
+		return
+	}
 
-		if !emailRegex.MatchString(request.Email) {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid email"})
+	if !emailRegex.MatchString(request.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid email"})
+		return
+	}
+
+	if !passwordRegex.MatchString(request.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid password"})
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to hash password"})
+		return
+	}
+
+	user := &models.User{
+		Username:       request.Username,
+		HashedPassword: string(hashedPassword),
+		Email:          request.Email,
+		IsAdmin:        false,
+	}
+
+	if err := mgr.CreateUser(user); err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "username or email already in use"})
 			return
 		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "user already exists"})
+		return
+	}
 
-		if !passwordRegex.MatchString(request.Password) {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid password"})
-			return
-		}
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		// secret not set
+		jwtSecret = "F4LLB4CK" // just for dev
+	}
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "unable to hash password"})
-			return
-		}
+	claims := jwt.MapClaims{
+		"sub":      strconv.Itoa(int(user.ID)),
+		"username": user.Username,
+		"exp":      time.Now().Add(24 * time.Hour).Unix(),
+		"iat":      time.Now().Unix(),
+	}
 
-		user := &models.User{
-			Username:       request.Username,
-			HashedPassword: string(hashedPassword),
-			Email:          request.Email,
-			IsAdmin:        false,
-			Ratings:        []models.Rating{},
-		}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(jwtSecret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
 
-		if err := mgr.CreateUser(user); err != nil {
-			if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-				ctx.JSON(http.StatusBadRequest, gin.H{"error": "username or email already in use"})
-				return
-			}
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "user already exists"})
-			return
-		}
-
-		jwtSecret := os.Getenv("JWT_SECRET")
-		if jwtSecret == "" {
-			// secret not set
-			jwtSecret = "F4LLB4CK" // just for dev
-		}
-
-		claims := jwt.MapClaims{
-			"sub":      strconv.Itoa(int(user.ID)),
-			"username": user.Username,
-			"exp":      time.Now().Add(24 * time.Hour).Unix(),
-			"iat":      time.Now().Unix(),
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString([]byte(jwtSecret))
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
-			return
-		}
-
-		user.HashedPassword = ""
-		ctx.JSON(http.StatusOK, gin.H{"token": tokenString, "user": user})
+	user.HashedPassword = ""
+	c.JSON(http.StatusOK, gin.H{"token": tokenString, "user": user})
 	}
 }

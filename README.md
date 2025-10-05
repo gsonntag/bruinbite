@@ -12,7 +12,7 @@ BruinBite has a Next.js frontend, Go backend, and PostgreSQL database.
 bruinbite/
 ├── frontend/          # Next.js frontend application
 ├── backend/           # Go backend server
-└── db/                # Database configuration and migrations ## to-do?
+└── docker-compose.yml # Database configuration
 ```
 
 ## Local Development Setup
@@ -61,7 +61,11 @@ The backend server will start on `http://localhost:8080`, and automatically popu
    npm install
    ```
 
-3. Edit .env.local file if necessary, stored at ./frontend/.env.local
+3. Create a `.env.local` file from the example:
+   ```bash
+   cp env.local.example .env.local
+   ```
+   Edit it if you need to change the backend URL (default is `http://localhost:8080`)
 
 4. Start the development server:
    ```bash

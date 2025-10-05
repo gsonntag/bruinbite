@@ -24,14 +24,13 @@ func SubmitRatingHandler(mgr *db.DBManager) gin.HandlerFunc {
 		}
 
 		// get user ID from context
-		userId, err := strconv.Atoi(c.GetString("userId"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		userID, ok := getUserIDFromContext(c)
+		if !ok {
 			return
 		}
 
 		rating := models.Rating{
-			UserID:  uint(userId),
+			UserID:  userID,
 			DishID:  request.DishID,
 			Score:   request.Score,
 			Comment: request.Comment,
@@ -47,14 +46,12 @@ func SubmitRatingHandler(mgr *db.DBManager) gin.HandlerFunc {
 
 func GetUserRatingsHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// get user ID from context OR from query parameters
-		userId, err := strconv.Atoi(c.GetString("userId"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		userID, ok := getUserIDFromContext(c)
+		if !ok {
 			return
 		}
 
-		ratings, err := mgr.GetAllRatingsByUserIDOrUsername(uint(userId), "")
+		ratings, err := mgr.GetAllRatingsByUserIDOrUsername(userID, "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
