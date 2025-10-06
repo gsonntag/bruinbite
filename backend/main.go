@@ -36,7 +36,7 @@ func InitializeDatabase() error {
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbName := os.Getenv("POSTGRES_DB")
 	dbURL := "postgres://" + dbUser + ":" + dbPassword + "@" + dbHost + ":" + dbPort + "/" + dbName + "?sslmode=disable"
-	// Try to connect to database
+	// Try to cnnect to database
 	database, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
 		return err

@@ -11,11 +11,14 @@ import (
 
 func GetFriendsHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, ok := getUserIDFromContext(c)
-		if !ok {
+		userId := c.GetString("userId")
+		// userId is a string, but we need to convert it to an int
+		userIdInt, err := strconv.Atoi(userId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
 		}
-		friends, err := mgr.GetFriendsByUserID(userID)
+		friends, err := mgr.GetFriendsByUserID(uint(userIdInt))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
@@ -29,11 +32,14 @@ func GetFriendsHandler(mgr *db.DBManager) gin.HandlerFunc {
 // GetOutgoingFriendRequestsHandler retrieves all friend requests for the current user
 func GetOutgoingFriendRequestsHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, ok := getUserIDFromContext(c)
-		if !ok {
+		userId := c.GetString("userId")
+		// userId is a string, but we need to convert it to an int
+		userIdInt, err := strconv.Atoi(userId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
 		}
-		requests, err := mgr.GetOutgoingFriendRequestsByUserID(userID)
+		requests, err := mgr.GetOutgoingFriendRequestsByUserID(uint(userIdInt))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
@@ -47,11 +53,14 @@ func GetOutgoingFriendRequestsHandler(mgr *db.DBManager) gin.HandlerFunc {
 // GetIncomingFriendRequestsHandler retrieves all incoming friend requests for the current user
 func GetIncomingFriendRequestsHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, ok := getUserIDFromContext(c)
-		if !ok {
+		userId := c.GetString("userId")
+		// userId is a string, but we need to convert it to an int
+		userIdInt, err := strconv.Atoi(userId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
 		}
-		requests, err := mgr.GetIncomingFriendRequestsByUserID(userID)
+		requests, err := mgr.GetIncomingFriendRequestsByUserID(uint(userIdInt))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
@@ -62,7 +71,7 @@ func GetIncomingFriendRequestsHandler(mgr *db.DBManager) gin.HandlerFunc {
 	}
 }
 
-// SendFriendRequestHandler handles sending a friend request
+// sendFriendRequestHandler handles sending a friend request
 func SendFriendRequestHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request struct {
@@ -73,12 +82,14 @@ func SendFriendRequestHandler(mgr *db.DBManager) gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := getUserIDFromContext(c)
-		if !ok {
+		userId := c.GetString("userId")
+		userIdInt, err := strconv.Atoi(userId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
 		}
 
-		err := mgr.SendFriendRequest(userID, request.FriendID)
+		err = mgr.SendFriendRequest(uint(userIdInt), request.FriendID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to send friend request"})
 			return
@@ -157,8 +168,10 @@ func BleveSearchUsersHandler(mgr *db.DBManager, userSearchManager *search.BleveU
 		}
 
 		// Get current user ID to exclude from search results
-		userID, ok := getUserIDFromContext(c)
-		if !ok {
+		userIdStr := c.GetString("userId")
+		userIdInt, err := strconv.Atoi(userIdStr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
 		}
 
@@ -167,7 +180,7 @@ func BleveSearchUsersHandler(mgr *db.DBManager, userSearchManager *search.BleveU
 		var allUsers []map[string]interface{}
 
 		// First: Try Bleve search with fuzzy matching
-		userDocs, err := userSearchManager.SearchUsers(username, userID, 20)
+		userDocs, err := userSearchManager.SearchUsers(username, uint(userIdInt), 20)
 		if err != nil {
 			// Bleve search failed, continue with database fallback
 		} else {
@@ -211,7 +224,7 @@ func BleveSearchUsersHandler(mgr *db.DBManager, userSearchManager *search.BleveU
 		} else {
 			for _, dbUser := range dbUsers {
 				// Skip current user and already found users
-				if dbUser.ID == userID || foundUserIDs[dbUser.ID] {
+				if dbUser.ID == uint(userIdInt) || foundUserIDs[dbUser.ID] {
 					continue
 				}
 

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gsonntag/bruinbite/db"
@@ -9,11 +10,13 @@ import (
 
 func GetCurUserInfoHandler(mgr *db.DBManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, ok := getUserIDFromContext(c)
-		if !ok {
+		userId := c.GetString("userId")
+		userIdInt, err := strconv.Atoi(userId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
 		}
-		user, err := mgr.GetUserByID(userID)
+		user, err := mgr.GetUserByID(uint(userIdInt))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
 			return
@@ -32,11 +35,15 @@ func GetUserInfoHandler(mgr *db.DBManager) gin.HandlerFunc {
 			return
 		}
 
-	user, err := mgr.GetUserByUsername(username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+		user, err := mgr.GetUserByUsername(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{
 			"user": user,
 		})
