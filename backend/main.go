@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -17,9 +17,9 @@ import (
 	"github.com/gsonntag/bruinbite/ingest"
 	"github.com/gsonntag/bruinbite/search"
 	"github.com/joho/godotenv"
+	"github.com/robfig/cron/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"github.com/robfig/cron/v3"
 )
 
 const Port = 8080
@@ -230,16 +230,16 @@ func InitializeRouter() error {
 }
 
 // InitializeSearch initializes the Bleve search system
-func InitializeSearch(forceReindex bool) error {
+func InitializeSearch() error {
 	// Initialize Bleve search manager for dishes
 	var err error
-	SearchManager, err = search.NewBleveSearchManager(forceReindex)
+	SearchManager, err = search.NewBleveSearchManager(true)
 	if err != nil {
 		return fmt.Errorf("failed to initialize search manager: %w", err)
 	}
 
 	// Initialize Bleve search manager for users
-	UserSearchManager, err = search.NewBleveUserSearchManager(forceReindex)
+	UserSearchManager, err = search.NewBleveUserSearchManager(true)
 	if err != nil {
 		return fmt.Errorf("failed to initialize user search manager: %w", err)
 	}
@@ -248,21 +248,19 @@ func InitializeSearch(forceReindex bool) error {
 	Indexer = search.NewIndexer(DBManager, SearchManager, 100)
 
 	// If forceReindex is true, rebuild the indices
-	if forceReindex {
-		log.Println("Rebuilding search indices...")
+	log.Println("Rebuilding search indices...")
 
-		// Index dishes
-		if err := Indexer.IndexAllDishes(); err != nil {
-			return fmt.Errorf("failed to index dishes: %w", err)
-		}
-
-		// Index users
-		if err := IndexAllUsers(); err != nil {
-			return fmt.Errorf("failed to index users: %w", err)
-		}
-
-		log.Println("Search indices rebuild complete")
+	// Index dishes
+	if err := Indexer.IndexAllDishes(); err != nil {
+		return fmt.Errorf("failed to index dishes: %w", err)
 	}
+
+	// Index users
+	if err := IndexAllUsers(); err != nil {
+		return fmt.Errorf("failed to index users: %w", err)
+	}
+
+	log.Println("Search indices rebuild complete")
 
 	return nil
 }
@@ -292,13 +290,11 @@ func IndexAllUsers() error {
 
 func InitializeCommandLineArguments() {
 	// Parse command line flags
-	reindexFlag := flag.Bool("reindex", false, "Rebuild the search index")
 	recalcFlag := flag.Bool("recalc", false, "Recalculate all ratings")
 	flag.Parse()
 
 	// Initialize search system
-	forceReindex := *reindexFlag
-	err := InitializeSearch(forceReindex)
+	err := InitializeSearch()
 	if err != nil {
 		log.Fatalln("Failed to initialize search system", err)
 		return
@@ -351,7 +347,7 @@ func main() {
 	// Block main thread for scraper to run the first time (doesn't make sense to serve users before it's loaded)
 	err = RunScraper()
 	if err != nil {
-		fmt.Printf("ERR WITH SCRAPER: %v\n", err)
+		fmt.Printf("Scraper Error: %v\n", err)
 		return
 	}
 
@@ -360,6 +356,5 @@ func main() {
 		log.Fatalln("Failed to initialize Gin router")
 		return
 	}
-
 
 }

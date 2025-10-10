@@ -19,6 +19,8 @@
 
 # production
 /build
+/backend/bruinbite
+/backend/uploads/*
 
 # bleve search index files
 backend/user_bleve_index/

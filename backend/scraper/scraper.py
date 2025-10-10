@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
 from selenium.common.exceptions import TimeoutException
@@ -34,8 +35,11 @@ def fetch_dining_data():
     options = Options()
     options.add_experimental_option("detach", True)
     options.add_argument("--headless")
+    options.binary_location = '/usr/bin/chromium-browser'
 
-    driver = webdriver.Chrome(options=options)
+    service = Service('/usr/bin/chromedriver')
+
+    driver = webdriver.Chrome(service=service, options=options)
 
     for name in dining_halls:
         driver.get(f'https://dining.ucla.edu/{name}/')

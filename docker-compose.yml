@@ -7,7 +7,7 @@ services:
     env_file:
       - ./backend/db.env
     ports:
-      - "5432:5432"
+      - "5555:5432" # host port 5555 -> container port 5432 (prevents conflict with local Postgres)
     volumes:
       - db_data:/var/lib/postgresql/data
 

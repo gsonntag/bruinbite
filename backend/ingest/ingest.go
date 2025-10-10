@@ -47,7 +47,7 @@ func FetchAndIngest(mgr *db.DBManager) error {
 		return nil
 	}
 
-	cmd := exec.Command("scraper/.venv/bin/python3", "scraper/scraper.py")
+	cmd := exec.Command("scraper/venv/bin/python3", "scraper/scraper.py")
 	out, err := cmd.Output()
 	if err != nil {
 		return fmt.Errorf("scraper failed: %w\noutput:\n%s", err, out)
